@@ -1,0 +1,25 @@
+{% extends 'base.html' %}{% block content %}
+<navbar>
+    <div class="navbar-buttons">
+        <a type="button" href="/albums">
+            <span icon>album</span>
+            <span>Albums</span>
+        </a>
+        <a type="button" href="/artists">
+            <span icon>artist</span>
+            <span>Artists</span>
+        </a>
+        <a type="button" href="/songs">
+            <span icon>music_note</span>
+            <span>Songs</span>
+        </a>
+        <a type="button" href="/playlists" active>
+            <span icon>queue_music</span>
+            <span>Playlists</span>
+        </a>
+    </div>
+</navbar>
+<main>
+    <h1>Playlists</h1>
+</main>
+{% endblock %}

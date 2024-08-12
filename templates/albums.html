@@ -1,0 +1,37 @@
+{% extends 'base.html' %}{% block content %}
+<navbar>
+    <div class="navbar-buttons">
+        <a type="button" href="/albums" active>
+            <span icon>album</span>
+            <span>Albums</span>
+        </a>
+        <a type="button" href="/artists">
+            <span icon>artist</span>
+            <span>Artists</span>
+        </a>
+        <a type="button" href="/songs">
+            <span icon>music_note</span>
+            <span>Songs</span>
+        </a>
+        <a type="button" href="/playlists">
+            <span icon>queue_music</span>
+            <span>Playlists</span>
+        </a>
+    </div>
+</navbar>
+<main>
+    <div class="item-container">
+        <div class="items">
+            {% for album in albums %}
+            <div class="item">
+                <img
+                    src="https://i.scdn.co/image/ab67616d0000b273d70aaa8d075b0c6c0e850219"
+                />
+                <span>{{ album[1] }}</span>
+                <small>{{ album[2] }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+{% endblock %}

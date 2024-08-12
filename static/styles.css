@@ -1,0 +1,130 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0");
+
+:root {
+    --text-color: #f6f5f4;
+    --background-color: #1e1e1e;
+}
+
+html {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1rem;
+    text-align: left;
+    word-wrap: break-word;
+    text-rendering: optimizeLegibility;
+}
+
+navbar {
+    display: flex;
+    justify-content: space-evenly;
+    padding: 0.5rem 1rem;
+    background-color: #303030;
+}
+
+main {
+    flex: 1 1 auto;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+a {
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+a[type="button"] {
+    font-size: inherit;
+    display: inline-flex;
+    align-items: center;
+    border: none;
+    color: var(--text-color);
+    background-color: transparent;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+}
+
+a[type="button"]:hover {
+    background-color: #404040;
+}
+
+/* Type button and attribute active set to true */
+a[type="button"][active] {
+    background-color: #404040;
+}
+
+span[icon] {
+    font-family: "Material Symbols Outlined";
+    margin-right: 4px;
+}
+
+footer {
+    color: white;
+    background-color: black;
+}
+
+.navbar-buttons {
+    display: flex;
+    justify-content: center;
+    margin: auto;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 1rem;
+    margin: 0 auto;
+}
+
+.item {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+.item:hover {
+    background-color: #303030;
+    border-radius: 0.375rem;
+}
+
+.item img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.375rem;
+    margin-bottom: 0.25rem;
+}
+
+.item span {
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.item small {
+    color: #a0a0a0;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
