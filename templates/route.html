@@ -24,4 +24,10 @@
         </p>
     </main>
 </router-view>
-{% include 'player.html' %} {% endblock %}
+<script>
+    // Redirect to path
+    const params = new URLSearchParams(window.location.search);
+    console.log("Redirecting to:", params.get("path"));
+    route(params.get("path"));
+</script>
+{% endblock %}

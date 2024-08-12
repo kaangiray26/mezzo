@@ -1,0 +1,43 @@
+<navbar>
+    <div class="navbar-buttons">
+        <a type="button" onclick="route('/albums')">
+            <span icon>album</span>
+            <span>Albums</span>
+        </a>
+        <a type="button" onclick="route('/artists')">
+            <span icon>artist</span>
+            <span>Artists</span>
+        </a>
+        <a type="button" onclick="route('/playlists')">
+            <span icon>queue_music</span>
+            <span>Playlists</span>
+        </a>
+    </div>
+</navbar>
+<main>
+    <div class="album-container">
+        <div class="album-front">
+            <img
+                class="album-cover"
+                src="https://via.placeholder.com/300"
+                alt="Album cover"
+            />
+            <div class="album-details">
+                <h1>{{ album[1] }}</h1>
+                <p>{{ album[2] }}</p>
+                <button class="btn-play" onclick="play('{{ album[0] }}')">
+                    <span icon>play_arrow</span>
+                </button>
+            </div>
+        </div>
+        <ul class="tracklist">
+            {% for track in tracks %}
+            <li class="track" onclick="mezzo.playTrack('{{ track[0] }}')">
+                <span class="track-number">{{ loop.index }}</span>
+                <span class="track-title">{{ track[1] }}</span>
+                <span class="track-duration">2:23</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</main>

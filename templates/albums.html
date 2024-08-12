@@ -1,19 +1,14 @@
-{% extends 'base.html' %}{% block content %}
 <navbar>
     <div class="navbar-buttons">
-        <a type="button" href="/albums" active>
+        <a type="button" onclick="route('/albums')" active>
             <span icon>album</span>
             <span>Albums</span>
         </a>
-        <a type="button" href="/artists">
+        <a type="button" onclick="route('/artists')">
             <span icon>artist</span>
             <span>Artists</span>
         </a>
-        <a type="button" href="/songs">
-            <span icon>music_note</span>
-            <span>Songs</span>
-        </a>
-        <a type="button" href="/playlists">
+        <a type="button" onclick="route('/playlists')">
             <span icon>queue_music</span>
             <span>Playlists</span>
         </a>
@@ -23,7 +18,7 @@
     <div class="item-container">
         <div class="items">
             {% for album in albums %}
-            <div class="item">
+            <div class="item" onclick="route('/album/{{album[0]}}')">
                 <img
                     src="https://i.scdn.co/image/ab67616d0000b273d70aaa8d075b0c6c0e850219"
                 />
@@ -34,4 +29,3 @@
         </div>
     </div>
 </main>
-{% endblock %}
