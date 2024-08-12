@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 class Mezzo {
     constructor() {
+        this.queue = [];
         this.player = new Howl({
             src: [null],
             format: ["flac", "mp3", "ogg", "wav", "aac", "m4a", "opus", "webm"],
@@ -59,19 +60,56 @@ class Mezzo {
         update_ref("player_play", "pause");
     }
 
+    async playAlbum(uuid) {
+        // Get album songs
+        let res = await fetch(`/album/${uuid}/songs`).then((res) => res.json());
+
+        // Add songs to queue
+        this.queue = res["songs"];
+
+        // Start playing
+        this.playQueue();
+    }
+
     async playTrack(uuid) {
         // Get track info
         let res = await fetch(`/stream/${uuid}/basic`).then((res) =>
             res.json(),
         );
+        console.log(res);
 
         // Update UI
+        update_ref("player_cover", `/cover/${res.cover}`);
         update_ref("player_title", res.name);
         update_ref("player_artist", res.artist);
 
         this.player.unload();
         this.player._src = `/stream/${uuid}`;
         this.player.load();
+    }
+
+    async seek(float) {
+        let duration = this.player.duration();
+        this.player._sounds[0]._node.currentTime = duration * float;
+    }
+
+    async playQueue() {
+        if (this.queue.length === 0) {
+            return;
+        }
+
+        let song = this.queue.shift();
+        this.playTrack(song);
+    }
+
+    async next() {
+        // Play next song
+        let song = this.queue.shift();
+        this.playTrack(song);
+    }
+
+    async prev() {
+        return;
     }
 }
 
@@ -92,4 +130,17 @@ function formatTime(secs) {
     let minutes = Math.floor(seconds / 60);
     seconds = seconds % 60;
     return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+}
+
+async function seek(click) {
+    // Get progress bar
+    let progress = document.querySelector(".progress-bar");
+
+    // Get bounding box of progress bar
+    let rect = progress.getBoundingClientRect();
+
+    // Get relative position of mouse
+    let point = (click.clientX - rect.left) / rect.width;
+
+    window.mezzo.seek(point);
 }

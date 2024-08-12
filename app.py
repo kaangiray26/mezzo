@@ -55,6 +55,14 @@ def album(uuid):
     songs = con.sql(f"SELECT * FROM songs WHERE album = '{uuid}' ORDER BY discnumber, tracknumber;").fetchall()
     return render_template("album.html", album=album, songs=songs)
 
+@app.route("/album/<uuid>/songs")
+def album_songs(uuid):
+    # Get songs
+    songs = con.sql(f"SELECT id FROM songs WHERE album = '{uuid}' ORDER BY discnumber, tracknumber;").fetchall()
+    return {
+        "songs": list(map(lambda x: x[0], songs))
+    }
+
 @app.route("/artists")
 @route_required
 def artists():
@@ -76,9 +84,9 @@ def stream(uuid):
 @app.route("/stream/<uuid>/basic")
 def stream_basic(uuid):
     # Get song
-    song = con.sql(f"SELECT songs.id, songs.name, songs.path, artists.name, albums.name FROM songs JOIN artists ON songs.artist = artists.id JOIN albums ON songs.album = albums.id WHERE songs.id = '{uuid}';").fetchone()
+    song = con.sql(f"SELECT songs.id, songs.name, songs.album, artists.name, albums.name FROM songs JOIN artists ON songs.artist = artists.id JOIN albums ON songs.album = albums.id WHERE songs.id = '{uuid}';").fetchone()
     # Return as JSON with column names
-    columns = ["id", "name", "path", "artist", "album"]
+    columns = ["id", "name", "cover", "artist", "album"]
     return dict(zip(columns, song))
 
 @app.route("/cover/<uuid>")

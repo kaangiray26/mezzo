@@ -13,19 +13,19 @@
     </div>
     <div class="player-controls">
         <div class="player-buttons">
-            <button class="btn-prev" onclick="prev()">
+            <button class="btn-prev" onclick="mezzo.prev()">
                 <span icon>skip_previous</span>
             </button>
             <button class="btn-play" onclick="mezzo.play()">
                 <span ref="player_play" icon>play_arrow</span>
             </button>
-            <button class="btn-next" onclick="next()">
+            <button class="btn-next" onclick="mezzo.next()">
                 <span icon>skip_next</span>
             </button>
         </div>
         <div class="player-progress">
             <small class="player-time" ref="player_current_time">0:00</small>
-            <div class="progress-bar">
+            <div class="progress-bar" onclick="seek(event)">
                 <div ref="progress" ref_to="style" class="progress"></div>
             </div>
             <small class="player-time" ref="player_duration">0:00</small>
