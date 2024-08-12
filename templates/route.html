@@ -1,29 +1,5 @@
 {% extends 'base.html' %}{% block content %}
-<router-view>
-    <navbar>
-        <div class="navbar-buttons">
-            <a type="button" onclick="route('/albums')">
-                <span icon>album</span>
-                <span>Albums</span>
-            </a>
-            <a type="button" onclick="route('/artists')">
-                <span icon>artist</span>
-                <span>Artists</span>
-            </a>
-            <a type="button" onclick="route('/playlists')">
-                <span icon>queue_music</span>
-                <span>Playlists</span>
-            </a>
-        </div>
-    </navbar>
-    <main>
-        <h1>Welcome!</h1>
-        <p>
-            This is a simple music player app. You can browse through the
-            albums, artists, and playlists.
-        </p>
-    </main>
-</router-view>
+<router-view> </router-view>
 <script>
     // Redirect to path
     const params = new URLSearchParams(window.location.search);

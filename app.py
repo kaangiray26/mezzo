@@ -53,6 +53,7 @@ def album(uuid):
     # Get album
     album = con.sql(f"SELECT albums.id, albums.name, artists.name FROM albums JOIN artists ON albums.artist = artists.id WHERE albums.id = '{uuid}';").fetchone()
     songs = con.sql(f"SELECT * FROM songs WHERE album = '{uuid}' ORDER BY discnumber, tracknumber;").fetchall()
+    print(album, songs)
     return render_template("album.html", album=album, songs=songs)
 
 @app.route("/album/<uuid>/songs")
@@ -102,8 +103,8 @@ def update_library():
         return
 
     # Scan library
-    scanner = Scanner()
-    scanner.scan(config["library_path"])
+    scanner = Scanner(config["library_path"])
+    scanner.scan()
 
     print("Updating library...")
     con.sql(scanner.join_artists())
