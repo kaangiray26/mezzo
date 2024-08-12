@@ -1,4 +1,7 @@
 __pycache__
 env
+covers
 *.json
 *.db
+*.txt
+*.wal

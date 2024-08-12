@@ -19,7 +19,7 @@
         <div class="album-front">
             <img
                 class="album-cover"
-                src="https://via.placeholder.com/300"
+                src="/cover/{{ album[0] }}"
                 alt="Album cover"
             />
             <div class="album-details">
@@ -31,10 +31,10 @@
             </div>
         </div>
         <ul class="tracklist">
-            {% for track in tracks %}
-            <li class="track" onclick="mezzo.playTrack('{{ track[0] }}')">
+            {% for song in songs %}
+            <li class="track" onclick="mezzo.playTrack('{{ song[0] }}')">
                 <span class="track-number">{{ loop.index }}</span>
-                <span class="track-title">{{ track[1] }}</span>
+                <span class="track-title">{{ song[1] }}</span>
                 <span class="track-duration">2:23</span>
             </li>
             {% endfor %}

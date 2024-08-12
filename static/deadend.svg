@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="24px"
+   viewBox="0 -960 960 960"
+   width="24px"
+   fill="#e8eaed"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="deadend.svg"
+   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="31.25"
+     inkscape:cx="10.976"
+     inkscape:cy="10.896"
+     inkscape:window-width="1920"
+     inkscape:window-height="1011"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <rect
+     style="fill:#f6f5f4;stroke-width:20;fill-opacity:1"
+     id="rect1"
+     width="960"
+     height="960"
+     x="0"
+     y="-960" />
+  <path
+     d="M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v400q0 66-47 113t-113 47Z"
+     id="path1"
+     style="stroke:none;fill:#232333;fill-opacity:1" />
+  <text
+     xml:space="preserve"
+     style="font-size:80px;font-family:Righteous;-inkscape-font-specification:Righteous;white-space:pre;inline-size:369.6;display:inline;fill:#232333;fill-opacity:1;stroke-width:20"
+     x="110.39996"
+     y="-812.28003"
+     id="text1"
+     transform="translate(0,108.52003)"><tspan
+       x="110.39996"
+       y="-812.28003"
+       id="tspan3"><tspan
+         style="font-family:Cantarell;-inkscape-font-specification:Cantarell"
+         id="tspan2">COVER </tspan></tspan><tspan
+       x="110.39996"
+       y="-710.66842"
+       id="tspan5"><tspan
+         style="font-family:Cantarell;-inkscape-font-specification:Cantarell"
+         id="tspan4">NOT </tspan></tspan><tspan
+       x="110.39996"
+       y="-609.05678"
+       id="tspan7"><tspan
+         style="font-family:Cantarell;-inkscape-font-specification:Cantarell"
+         id="tspan6">FOUND</tspan></tspan></text>
+</svg>

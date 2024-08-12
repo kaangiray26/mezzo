@@ -1,11 +1,10 @@
 #!env/bin/python3
 # -*- coding: utf-8 -*-
 
+import os
 import duckdb
-from queue import Queue, Empty
-from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
+from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, send_from_directory
 import functools
-from threading import Thread
 from lib.mezzo import Scanner
 from lib.db import create_tables
 from uuid import uuid4
@@ -14,13 +13,13 @@ from uuid import uuid4
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-# Tasks
-tasks = Queue()
-
 # Config
 config = {
     "library_path": "~/Music",
 }
+
+# Create covers directory
+os.makedirs("covers", exist_ok=True)
 
 # Init duckdb
 con = duckdb.connect("mezzo.db", config = {'threads': 1})
@@ -45,16 +44,16 @@ def index():
 @route_required
 def albums():
     # Get albums
-    albums = con.sql("SELECT * FROM albums ORDER BY title;").fetchall()
+    albums = con.sql("SELECT albums.id, albums.name, artists.name FROM albums JOIN artists ON albums.artist = artists.id ORDER BY albums.name;").fetchall()
     return render_template("albums.html", albums=albums)
 
 @app.route("/album/<uuid>")
 @route_required
 def album(uuid):
     # Get album
-    album = con.sql(f"SELECT * FROM albums WHERE id = '{uuid}';").fetchone()
-    tracks = con.sql(f"SELECT * FROM songs WHERE album = '{album[1]}';").fetchall()
-    return render_template("album.html", album=album, tracks=tracks)
+    album = con.sql(f"SELECT albums.id, albums.name, artists.name FROM albums JOIN artists ON albums.artist = artists.id WHERE albums.id = '{uuid}';").fetchone()
+    songs = con.sql(f"SELECT * FROM songs WHERE album = '{uuid}' ORDER BY discnumber, tracknumber;").fetchall()
+    return render_template("album.html", album=album, songs=songs)
 
 @app.route("/artists")
 @route_required
@@ -72,16 +71,20 @@ def playlists():
 def stream(uuid):
     # Get song
     song = con.sql(f"SELECT * FROM songs WHERE id = '{uuid}';").fetchone()
-    return send_file(song[4])
+    return send_file(song[2])
 
 @app.route("/stream/<uuid>/basic")
 def stream_basic(uuid):
     # Get song
-    song = con.sql(f"SELECT * FROM songs WHERE id = '{uuid}';").fetchone()
-
+    song = con.sql(f"SELECT songs.id, songs.name, songs.path, artists.name, albums.name FROM songs JOIN artists ON songs.artist = artists.id JOIN albums ON songs.album = albums.id WHERE songs.id = '{uuid}';").fetchone()
     # Return as JSON with column names
-    columns = ["id", "title", "artist", "album", "path"]
+    columns = ["id", "name", "path", "artist", "album"]
     return dict(zip(columns, song))
+
+@app.route("/cover/<uuid>")
+def cover(uuid):
+    # Send cover
+    return send_from_directory("covers", uuid)
 
 def update_library():
     # Check for song count

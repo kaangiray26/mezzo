@@ -20,7 +20,8 @@
             {% for album in albums %}
             <div class="item" onclick="route('/album/{{album[0]}}')">
                 <img
-                    src="https://i.scdn.co/image/ab67616d0000b273d70aaa8d075b0c6c0e850219"
+                    src="/cover/{{ album[0] }}"
+                    onerror="this.src='/static/deadend.svg'"
                 />
                 <span>{{ album[1] }}</span>
                 <small>{{ album[2] }}</small>

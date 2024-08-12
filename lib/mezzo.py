@@ -3,11 +3,14 @@
 import os
 import json
 import time
+import shutil
 import mutagen
 from mutagen.easyid3 import EasyID3
 from uuid import uuid4
 
 def escape(string):
+    if string is None:
+        return ""
     return string.replace("'", "''")
 
 class Scanner:
@@ -37,16 +40,18 @@ class Scanner:
         return "INSERT INTO artists VALUES " +", ".join(map(lambda x: "('{}', '{}')".format(x[0], escape(x[1]['name'])), self.library["artists"].items()))
 
     def join_albums(self):
-        try:
-            return "INSERT INTO albums VALUES " + ", ".join(map(lambda x: "('{}', '{}', '{}', '{}')".format(x[0], escape(x[1]['name']), x[1]['artist'], escape(x[1]['cover'])), self.library["albums"].items()))
-        except Exception as e:
-            print(e)
+        return "INSERT INTO albums VALUES " + ", ".join(map(lambda x: "('{}', '{}', '{}', '{}')".format(x[0], escape(x[1]['name']), x[1]['artist'], escape(x[1]['cover'])), self.library["albums"].items()))
 
     def join_songs(self):
         return "INSERT INTO songs VALUES " + ", ".join(map(lambda x: "('{}', '{}', '{}', '{}', '{}', '{}', '{}')".format(x[0], escape(x[1]['name']), escape(x[1]['path']), x[1]['artist'], x[1]['album'], x[1]['discnumber'], x[1]['tracknumber']), self.library["songs"].items()))
 
     def add_cover(self, album_id, path):
-        self.library["albums"][album_id]["cover"] = path
+        # Copy cover to covers directory as album_id.extension
+        cover_path = os.path.join("covers", album_id)
+        shutil.copyfile(path, cover_path)
+
+        # Add cover to library
+        self.library["albums"][album_id]["cover"] = cover_path
 
     def add_song(self, path, tags):
         print(tags)
@@ -145,7 +150,7 @@ class Scanner:
                             "artist": artist_id,
                             "album": album_id,
                             "discnumber": tags["discnumber"][0] if "discnumber" in tags else "1",
-                            "tracknumber": tags["tracknumber"][0],
+                            "tracknumber": tags["tracknumber"][0]
                         }
                     except Exception as e:
                         raise Exception(f"Error adding song {os.path.join(library_path, artist, album, file)}: {e}")
