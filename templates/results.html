@@ -1,13 +1,17 @@
 <div class="results">
     {% if results.artists %}
     <h3>Artists</h3>
-    <ul>
+    <div class="artist-results">
         {% for result in results.artists %}
-        <li>
+        <div class="artist-result" onclick="route('/artist/{{result[0]}}')">
+            <img
+                src="/cover/{{ result[2] }}"
+                onerror="this.src='/static/deadend.svg'"
+            />
             <span>{{ result[1] }}</span>
-        </li>
+        </div>
         {% endfor %}
-    </ul>
+    </div>
     {% endif %} {% if results.albums %}
     <h3>Albums</h3>
     <div class="item-container">
@@ -28,7 +32,11 @@
     <h3>Songs</h3>
     <ul class="song-results">
         {% for song in results.songs %}
-        <li class="song-result" onclick="mezzo.playSong('{{ song[0] }}')">
+        <li
+            class="song-result"
+            onclick="mezzo.playSong('{{ song[0] }}')"
+            oncontextmenu="mezzo.openSongMenu(event, this, '{{ song[0] }}', '{{ song[2]}}', '{{ song[3] }}')"
+        >
             <span class="track-title">{{ song[1] }}</span>
             <span class="track-title">{{ song[4] }}</span>
             <span class="track-title">{{ song[5] }}</span>
@@ -38,3 +46,4 @@
     </ul>
     {% endif %}
 </div>
+{% include 'songmenu.html' %}

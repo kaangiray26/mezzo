@@ -20,7 +20,11 @@
         </div>
         <ul class="tracklist">
             {% for song in songs %}
-            <li class="track" onclick="mezzo.playSong('{{ song[0] }}')">
+            <li
+                class="track"
+                onclick="mezzo.playSong('{{ song[0] }}')"
+                oncontextmenu="mezzo.openSongMenu(event, this, '{{ song[0] }}', '{{ song[3]}}', '{{ song[4] }}')"
+            >
                 <span class="track-number">{{ loop.index }}</span>
                 <span class="track-title">{{ song[1] }}</span>
                 <span class="track-duration">2:23</span>
@@ -28,4 +32,5 @@
             {% endfor %}
         </ul>
     </div>
+    {% include 'songmenu.html' %}
 </main>

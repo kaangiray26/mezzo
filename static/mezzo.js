@@ -1,3 +1,7 @@
+window.onpopstate = (event) => {
+    route(window.location.pathname);
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     // Redirect to path if needed
     const params = new URLSearchParams(window.location.search);
@@ -15,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
 class Mezzo {
     constructor() {
         this.queue = [];
+        this.preview = false;
         this.player = new Howl({
             src: [null],
             format: ["flac", "mp3", "ogg", "wav", "aac", "m4a", "opus", "webm"],
@@ -27,6 +32,21 @@ class Mezzo {
             this.on_track_loaded();
             this.listen_progress();
             update_ref("player_play", "pause");
+        });
+
+        // mediaSession
+        navigator.mediaSession.playbackState = "none";
+        navigator.mediaSession.setActionHandler("play", () => {
+            this.play();
+        });
+        navigator.mediaSession.setActionHandler("pause", () => {
+            this.play();
+        });
+        navigator.mediaSession.setActionHandler("nexttrack", () => {
+            this.next();
+        });
+        navigator.mediaSession.setActionHandler("previoustrack", () => {
+            this.prev();
         });
 
         console.log("Mezzo player initialized.");
@@ -116,8 +136,11 @@ class Mezzo {
     }
 
     async next() {
+        if (!this.queue) return;
+
         // Play next song
         let song = this.queue.shift();
+        console.log(song);
         this.playSong(song);
     }
 
@@ -134,14 +157,35 @@ class Mezzo {
             },
             body: JSON.stringify(this.queue),
         }).then((res) => res.text());
-        let dialog = document.querySelector("dialog");
+        let dialog = document.querySelector("#dialog");
         dialog.innerHTML = res;
         dialog.showModal();
     }
 
     async closeQueue() {
-        let dialog = document.querySelector("dialog");
+        let dialog = document.querySelector("#dialog");
         dialog.close();
+    }
+
+    async openSongMenu(ev, el, song, artist, album) {
+        ev.preventDefault();
+        // Get element location
+        let rect = el.getBoundingClientRect();
+        console.log(rect);
+
+        // Get dialog
+        let dialog = document.querySelector(`.song-menu`);
+
+        // Set uuid
+        dialog.setAttribute("song", song);
+        dialog.setAttribute("artist", artist);
+        dialog.setAttribute("album", album);
+
+        // Set dialog position
+        dialog.style.top = `${ev.clientY}px`;
+        dialog.style.left = `${ev.clientX}px`;
+
+        dialog.showModal();
     }
 }
 
@@ -192,4 +236,30 @@ async function search(ev, query) {
 
 async function focusSearch() {
     document.querySelector("search input").focus();
+}
+
+async function songmenu_action(action, el) {
+    // Get song
+    let dialog = el.closest(".song-menu");
+    let song = dialog.getAttribute("song");
+
+    // Get action
+    switch (action) {
+        case "play":
+            window.mezzo.playSong(song);
+            break;
+        case "addToQueue":
+            window.mezzo.queue.push(song);
+            break;
+        case "goToAlbum":
+            let album = dialog.getAttribute("album");
+            route(`/album/${album}`);
+            break;
+        case "goToArtist":
+            let artist = dialog.getAttribute("artist");
+            route(`/artist/${artist}`);
+            break;
+    }
+
+    dialog.close();
 }

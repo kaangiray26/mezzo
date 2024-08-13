@@ -133,7 +133,7 @@ def queue():
         return render_template("queue.html", songs=[])
 
     # Get songs
-    songs = con.sql(f"SELECT * FROM songs WHERE id IN ({','.join(map(lambda x: f'\'{x}\'', queue))});").fetchall()
+    songs = con.sql(f"SELECT * FROM songs WHERE id IN ({','.join(map(lambda x: f'\'{x}\'', queue))}) ORDER BY case id { ' '.join([f'when \'{x}\' then {i}' for i, x in enumerate(queue)]) } end;").fetchall()
     return render_template("queue.html", songs=songs)
 
 def update_library():
