@@ -71,8 +71,8 @@ class Mezzo {
         this.playQueue();
     }
 
-    async playTrack(uuid) {
-        // Get track info
+    async playSong(uuid) {
+        // Get song info
         let res = await fetch(`/stream/${uuid}/basic`).then((res) =>
             res.json(),
         );
@@ -88,6 +88,19 @@ class Mezzo {
         this.player.load();
     }
 
+    async playArtist(uuid) {
+        // Get artist songs
+        let res = await fetch(`/artist/${uuid}/songs`).then((res) =>
+            res.json(),
+        );
+
+        // Add songs to queue
+        this.queue = res["songs"];
+
+        // Start playing
+        this.playQueue();
+    }
+
     async seek(float) {
         let duration = this.player.duration();
         this.player._sounds[0]._node.currentTime = duration * float;
@@ -99,17 +112,36 @@ class Mezzo {
         }
 
         let song = this.queue.shift();
-        this.playTrack(song);
+        this.playSong(song);
     }
 
     async next() {
         // Play next song
         let song = this.queue.shift();
-        this.playTrack(song);
+        this.playSong(song);
     }
 
     async prev() {
         return;
+    }
+
+    async openQueue() {
+        // Get songs
+        let res = await fetch("/queue", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(this.queue),
+        }).then((res) => res.text());
+        let dialog = document.querySelector("dialog");
+        dialog.innerHTML = res;
+        dialog.showModal();
+    }
+
+    async closeQueue() {
+        let dialog = document.querySelector("dialog");
+        dialog.close();
     }
 }
 

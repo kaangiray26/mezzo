@@ -13,13 +13,13 @@
     </div>
     <div class="player-controls">
         <div class="player-buttons">
-            <button class="btn-prev" onclick="mezzo.prev()">
+            <button class="btn-light" onclick="mezzo.prev()">
                 <span icon>skip_previous</span>
             </button>
             <button class="btn-play" onclick="mezzo.play()">
                 <span ref="player_play" icon>play_arrow</span>
             </button>
-            <button class="btn-next" onclick="mezzo.next()">
+            <button class="btn-light" onclick="mezzo.next()">
                 <span icon>skip_next</span>
             </button>
         </div>
@@ -32,6 +32,9 @@
         </div>
     </div>
     <div class="player-options">
+        <button class="btn-option" onclick="mezzo.openQueue()">
+            <span icon>queue_music</span>
+        </button>
         <!-- <button class="btn-shuffle" onclick="shuffle()">
             <span icon>shuffle</span>
         </button>

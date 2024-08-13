@@ -20,7 +20,7 @@
         </div>
         <ul class="tracklist">
             {% for song in songs %}
-            <li class="track" onclick="mezzo.playTrack('{{ song[0] }}')">
+            <li class="track" onclick="mezzo.playSong('{{ song[0] }}')">
                 <span class="track-number">{{ loop.index }}</span>
                 <span class="track-title">{{ song[1] }}</span>
                 <span class="track-duration">2:23</span>

@@ -28,7 +28,7 @@
     <h3>Songs</h3>
     <ul class="song-results">
         {% for song in results.songs %}
-        <li class="song-result" onclick="mezzo.playTrack('{{ song[0] }}')">
+        <li class="song-result" onclick="mezzo.playSong('{{ song[0] }}')">
             <span class="track-title">{{ song[1] }}</span>
             <span class="track-title">{{ song[4] }}</span>
             <span class="track-title">{{ song[5] }}</span>

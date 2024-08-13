@@ -92,6 +92,14 @@ def artist(uuid):
     albums = con.sql(f"SELECT * FROM albums WHERE artist = '{uuid}' ORDER BY name;").fetchall()
     return render_template("artist.html", artist=artist, albums=albums)
 
+@app.route("/artist/<uuid>/songs")
+def artist_songs(uuid):
+    # Get random songs
+    songs = con.sql(f"SELECT id FROM songs WHERE artist = '{uuid}' ORDER BY RANDOM() LIMIT 12;").fetchall()
+    return {
+        "songs": list(map(lambda x: x[0], songs))
+    }
+
 @app.route("/playlists")
 @route_required
 def playlists():
@@ -115,6 +123,18 @@ def stream_basic(uuid):
 def cover(uuid):
     # Send cover
     return send_from_directory("covers", uuid)
+
+@app.route("/queue", methods=["POST"])
+def queue():
+    # Get queue
+    queue = request.json
+
+    if not queue:
+        return render_template("queue.html", songs=[])
+
+    # Get songs
+    songs = con.sql(f"SELECT * FROM songs WHERE id IN ({','.join(map(lambda x: f'\'{x}\'', queue))});").fetchall()
+    return render_template("queue.html", songs=songs)
 
 def update_library():
     # Check for song count
