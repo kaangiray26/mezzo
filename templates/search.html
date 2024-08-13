@@ -1,0 +1,13 @@
+{% with route='/search' %} {% include 'navbar.html' %} {% endwith %}
+<main>
+    <search>
+        <input
+            type="search"
+            name="q"
+            placeholder="Search songs, artists and albums"
+            onkeyup="search(event, this.value)"
+            autofocus
+        />
+    </search>
+    <search-results></search-results>
+</main>

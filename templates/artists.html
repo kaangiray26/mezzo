@@ -1,26 +1,12 @@
-<navbar>
-    <div class="navbar-buttons">
-        <a type="button" onclick="route('/albums')">
-            <span icon>album</span>
-            <span>Albums</span>
-        </a>
-        <a type="button" onclick="route('/artists')" active>
-            <span icon>artist</span>
-            <span>Artists</span>
-        </a>
-        <a type="button" onclick="route('/playlists')">
-            <span icon>queue_music</span>
-            <span>Playlists</span>
-        </a>
-    </div>
-</navbar>
+{% with route='/artists' %} {% include 'navbar.html' %} {% endwith %}
 <main>
     <div class="items-container">
         <div class="items">
             {% for artist in artists %}
-            <div class="item">
+            <div class="item" onclick="route('/artist/{{artist[0]}}')">
                 <img
-                    src="https://i.scdn.co/image/ab67616d0000b273d70aaa8d075b0c6c0e850219"
+                    src="/cover/{{ artist[2] }}"
+                    onerror="this.src='/static/deadend.svg'"
                 />
                 <span>{{ artist[1] }}</span>
             </div>

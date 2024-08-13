@@ -1,7 +1,8 @@
 artists_table = """
 CREATE TABLE IF NOT EXISTS artists (
     id UUID PRIMARY KEY,
-    name VARCHAR
+    name VARCHAR,
+    cover VARCHAR
 );
 """
 

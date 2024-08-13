@@ -5,8 +5,10 @@ import json
 import time
 import shutil
 import mutagen
+import requests
 from mutagen.easyid3 import EasyID3
 from uuid import uuid4
+from base64 import b64encode
 
 def escape(string):
     if string is None:
@@ -14,15 +16,68 @@ def escape(string):
     return string.replace("'", "''")
 
 class Scanner:
-    def __init__(self, path):
+    def __init__(self):
+        # Read config
+        with open("config.json", "r") as f:
+            self.config = json.load(f)
+
+        # Set variables
         self.library = {
             "artists":{},
             "albums":{},
             "songs":{}
         }
-        self.library_path = os.path.expanduser(path)
         self.audio_extensions = [".mp3", ".flac", ".ogg", ".wav"]
         self.image_extensions = [".jpg", ".jpeg", ".png"]
+        self.library_path = os.path.expanduser(self.config["library_path"])
+
+        # Spotify
+        self.last_request = 0
+        self.spotify_expires = 0
+        self.spotify_access_token = None
+
+    def get_spotify_access_token(self):
+        auth = b64encode(f"{self.config['spotify_client_id']}:{self.config['spotify_client_secret']}".encode()).decode()
+        with requests.post(
+            "https://accounts.spotify.com/api/token",
+            data = {
+                "grant_type": "client_credentials"
+            },
+            headers = {
+                "Authorization": f"Basic {auth}"
+            }
+        ) as r:
+            data = r.json()
+            self.spotify_access_token = data["access_token"]
+            self.spotify_expires = time.time() + data["expires_in"]
+
+    def get_artist_cover_from_spotify(self, name):
+        if not self.spotify_access_token or time.time() > self.spotify_expires:
+            self.get_spotify_access_token()
+
+        # Rate limit: 10 requests per second
+        if time.time() - self.last_request < 0.1:
+            time.sleep(0.1)
+
+        # Get artist cover from spotify
+        url = "https://api.spotify.com/v1/search"
+        with requests.get(url, params = {"q": name, "type": "artist", "limit": 1}, headers = {"Authorization": f"Bearer {self.spotify_access_token}"}) as r:
+            if r.status_code != 200:
+                print("Error:", r.status_code, r.text)
+                return None
+            # Parse data
+            data = r.json()
+            image_url = data["artists"]["items"][0]["images"][0]["url"]
+            print("Got cover for:", name, image_url)
+
+        # Download image to covers directory
+        id = str(uuid4())
+        cover_path = os.path.join("covers", id)
+        with requests.get(image_url) as r:
+            with open(cover_path, "wb") as f:
+                f.write(r.content)
+
+        return id
 
     def get_tags(self, path):
         # Check extension
@@ -32,7 +87,7 @@ class Scanner:
 
     def join_artists(self):
         # Use items
-        return "INSERT INTO artists VALUES " +", ".join(map(lambda x: "('{}', '{}')".format(x[0], escape(x[1]['name'])), self.library["artists"].items()))
+        return "INSERT INTO artists VALUES " +", ".join(map(lambda x: "('{}', '{}', '{}')".format(x[0], escape(x[1]['name']), escape(x[1]['cover'])), self.library["artists"].items()))
 
     def join_albums(self):
         return "INSERT INTO albums VALUES " + ", ".join(map(lambda x: "('{}', '{}', '{}', '{}')".format(x[0], escape(x[1]['name']), x[1]['artist'], escape(x[1]['cover'])), self.library["albums"].items()))
@@ -68,7 +123,8 @@ class Scanner:
             # Add artist
             artist_id = str(uuid4())
             self.library["artists"][artist_id] = {
-                "name": artist
+                "name": artist,
+                "cover": self.get_artist_cover_from_spotify(artist)
             }
 
             # Iterate over albums

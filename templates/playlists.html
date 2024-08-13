@@ -1,17 +1,2 @@
-<navbar>
-    <div class="navbar-buttons">
-        <a type="button" onclick="route('/albums')">
-            <span icon>album</span>
-            <span>Albums</span>
-        </a>
-        <a type="button" onclick="route('/artists')">
-            <span icon>artist</span>
-            <span>Artists</span>
-        </a>
-        <a type="button" onclick="route('/playlists')" active>
-            <span icon>queue_music</span>
-            <span>Playlists</span>
-        </a>
-    </div>
-</navbar>
+{% with route='/playlists' %} {% include 'navbar.html' %} {% endwith %}
 <main></main>

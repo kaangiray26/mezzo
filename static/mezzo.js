@@ -144,3 +144,20 @@ async function seek(click) {
 
     window.mezzo.seek(point);
 }
+
+async function search(ev, query) {
+    // Check for enter key
+    if (ev.key !== "Enter") {
+        return;
+    }
+
+    // Get search query
+    let response = await fetch(`/query?q=${query}`).then((res) => res.text());
+
+    // Render the content into the <search-results> element
+    document.querySelector("search-results").innerHTML = response;
+}
+
+async function focusSearch() {
+    document.querySelector("search input").focus();
+}

@@ -13,11 +13,6 @@ from uuid import uuid4
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-# Config
-config = {
-    "library_path": "~/Music",
-}
-
 # Create covers directory
 os.makedirs("covers", exist_ok=True)
 
@@ -38,7 +33,26 @@ def route_required(func):
 
 @app.route("/")
 def index():
-    return render_template("index.html", config=config)
+    return render_template("index.html")
+
+@app.route("/search")
+@route_required
+def search():
+    return render_template("search.html")
+
+@app.route("/query")
+def search_query():
+    query = request.args.get("q")
+    print("Searching for:", query)
+    artists = con.sql(f"SELECT * FROM artists WHERE name ILIKE '%{query}%' ORDER BY name;").fetchall()
+    albums = con.sql(f"SELECT albums.id, albums.name, albums.artist, albums.cover, artists.name FROM albums JOIN artists ON albums.artist = artists.id WHERE albums.name ILIKE '%{query}%' ORDER BY albums.name;").fetchall()
+    songs = con.sql(f"SELECT songs.id, songs.name, songs.artist, songs.album, artists.name, albums.name FROM songs JOIN artists ON songs.artist = artists.id JOIN albums ON songs.album = albums.id WHERE songs.name ILIKE '%{query}%' ORDER BY songs.name;").fetchall()
+
+    return render_template("results.html", results={
+        "artists": artists,
+        "albums": albums,
+        "songs": songs
+    })
 
 @app.route("/albums")
 @route_required
@@ -53,7 +67,6 @@ def album(uuid):
     # Get album
     album = con.sql(f"SELECT albums.id, albums.name, artists.name FROM albums JOIN artists ON albums.artist = artists.id WHERE albums.id = '{uuid}';").fetchone()
     songs = con.sql(f"SELECT * FROM songs WHERE album = '{uuid}' ORDER BY discnumber, tracknumber;").fetchall()
-    print(album, songs)
     return render_template("album.html", album=album, songs=songs)
 
 @app.route("/album/<uuid>/songs")
@@ -70,6 +83,14 @@ def artists():
     # Get artists
     artists = con.sql("SELECT * FROM artists ORDER BY name;").fetchall()
     return render_template("artists.html", artists=artists)
+
+@app.route("/artist/<uuid>")
+@route_required
+def artist(uuid):
+    # Get artist
+    artist = con.sql(f"SELECT * FROM artists WHERE id = '{uuid}';").fetchone()
+    albums = con.sql(f"SELECT * FROM albums WHERE artist = '{uuid}' ORDER BY name;").fetchall()
+    return render_template("artist.html", artist=artist, albums=albums)
 
 @app.route("/playlists")
 @route_required
@@ -103,7 +124,7 @@ def update_library():
         return
 
     # Scan library
-    scanner = Scanner(config["library_path"])
+    scanner = Scanner()
     scanner.scan()
 
     print("Updating library...")
