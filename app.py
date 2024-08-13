@@ -23,6 +23,19 @@ con = duckdb.connect("mezzo.db", config = {'threads': 1})
 for create_table in create_tables:
     con.execute(create_table)
 
+# Update library
+count = con.sql("SELECT COUNT(*) FROM songs;").fetchone()[0]
+if count == 0:
+    # Scan library
+    scanner = Scanner()
+    scanner.scan()
+
+    print("Updating library...")
+    con.sql(scanner.join_artists())
+    con.sql(scanner.join_albums())
+    con.sql(scanner.join_songs())
+    print("Library updated.")
+
 def route_required(func):
     @functools.wraps(func)
     def route(*args, **kwargs):
@@ -135,29 +148,3 @@ def queue():
     # Get songs
     songs = con.sql(f"SELECT * FROM songs WHERE id IN ({','.join(map(lambda x: f'\'{x}\'', queue))}) ORDER BY case id { ' '.join([f'when \'{x}\' then {i}' for i, x in enumerate(queue)]) } end;").fetchall()
     return render_template("queue.html", songs=songs)
-
-def update_library():
-    # Check for song count
-    count = con.sql("SELECT COUNT(*) FROM songs;").fetchone()[0]
-    if count > 0:
-        print("Library already exists.")
-        return
-
-    # Scan library
-    scanner = Scanner()
-    scanner.scan()
-
-    print("Updating library...")
-    con.sql(scanner.join_artists())
-    con.sql(scanner.join_albums())
-    con.sql(scanner.join_songs())
-    print("Library updated.")
-
-if __name__ == "__main__":
-    try:
-        update_library()
-        app.run()
-    except KeyboardInterrupt:
-        print("Exiting...")
-        con.close()
-        exit(0)

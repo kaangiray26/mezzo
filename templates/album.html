@@ -5,7 +5,7 @@
             <img
                 class="album-cover"
                 src="/cover/{{ album[0] }}"
-                alt="Album cover"
+                onerror="this.src='/static/deadend.svg'"
             />
             <div class="album-details">
                 <h1>{{ album[1] }}</h1>

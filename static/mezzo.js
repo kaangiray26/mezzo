@@ -71,6 +71,10 @@ class Mezzo {
     }
 
     async play() {
+        // Check if any song is loaded
+        if (!this.player._src[0]) return;
+
+        // Play or pause
         if (this.player.playing()) {
             this.player.pause();
             update_ref("player_play", "play_arrow");

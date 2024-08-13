@@ -14,4 +14,5 @@ if [ ! -d "env" ]; then
 fi
 
 # Run the python script
-env/bin/python3 app.py
+# env/bin/python3 app.py
+env/bin/python3 wsgi.py

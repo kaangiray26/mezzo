@@ -418,6 +418,7 @@ dialog {
 .player-info {
     display: flex;
     align-items: center;
+    overflow: hidden;
 }
 
 .player-cover {
@@ -432,6 +433,13 @@ dialog {
 .player-details {
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+}
+
+.player-details span {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .player-controls {
@@ -518,7 +526,13 @@ dialog {
 .artist-result {
     display: flex;
     flex-direction: column;
-    align-items: center;
+}
+
+.artist-result span {
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .artist-results img {
