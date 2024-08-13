@@ -34,6 +34,10 @@ class Mezzo {
             update_ref("player_play", "pause");
         });
 
+        this.player.on("end", () => {
+            this.track_finished();
+        });
+
         // mediaSession
         navigator.mediaSession.playbackState = "none";
         navigator.mediaSession.setActionHandler("play", () => {
@@ -50,6 +54,13 @@ class Mezzo {
         });
 
         console.log("Mezzo player initialized.");
+    }
+
+    async track_finished() {
+        // Checks for playing modes
+        // TODO: Add shuffle and repeat modes
+        // Play next song
+        this.playQueue();
     }
 
     async on_track_loaded() {
@@ -96,20 +107,37 @@ class Mezzo {
     }
 
     async playSong(uuid) {
+        // Load song
+        this.player.unload();
+        this.player._src = `/stream/${uuid}`;
+        this.player.load();
+
         // Get song info
         let res = await fetch(`/stream/${uuid}/basic`).then((res) =>
             res.json(),
         );
-        console.log(res);
 
         // Update UI
         update_ref("player_cover", `/cover/${res.cover}`);
         update_ref("player_title", res.name);
         update_ref("player_artist", res.artist);
 
-        this.player.unload();
-        this.player._src = `/stream/${uuid}`;
-        this.player.load();
+        // Update media session
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: res.name,
+            artist: res.artist,
+            album: res.album,
+            artwork: [
+                {
+                    src: `/cover/${res.cover}`,
+                    sizes: "512x512",
+                    type: "image/png",
+                },
+            ],
+        });
+
+        // Update window title
+        document.title = `${res.name} - ${res.artist}`;
     }
 
     async playArtist(uuid) {
@@ -131,9 +159,7 @@ class Mezzo {
     }
 
     async playQueue() {
-        if (this.queue.length === 0) {
-            return;
-        }
+        if (!this.queue.length) return;
 
         let song = this.queue.shift();
         this.playSong(song);

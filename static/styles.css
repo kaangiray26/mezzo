@@ -133,6 +133,11 @@ dialog {
     color: var(--text-color);
     background-color: #242424;
     z-index: 1;
+    box-sizing: border-box;
+}
+
+dialog:modal {
+    max-width: 100vw;
 }
 
 .song-menu {
@@ -492,6 +497,7 @@ dialog {
 
 .player-time {
     width: 4ch;
+    white-space: nowrap;
 }
 
 .welcome {
