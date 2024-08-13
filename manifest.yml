@@ -2,30 +2,26 @@ id: org.flatpak.mezzo
 runtime: org.freedesktop.Platform
 runtime-version: "23.08"
 sdk: org.freedesktop.Sdk
-command: python3 /app/wsgi.py
+command: /app/mezzo
 finish-args:
     - --share=network
     - --socket=x11
     - --socket=wayland
     - --device=dri
     - --filesystem=home
+
 modules:
     - name: python3
       buildsystem: simple
       build-commands:
-          - pip3 install --no-cache-dir -r requirements.txt -t /app
-      sources:
-          - type: file
-            path: requirement.txt
-
-    - name: mezzo
-      buildsystem: simple
-      build-commands:
+          - mkdir -p /app/wheels
+          - cp packages/* /app/wheels/
+          - pip3 install --no-cache-dir /app/wheels/*.whl --target=/app/lib
           - mkdir -p /app/lib /app/static /app/templates
           - cp -r static /app/static
           - cp -r templates /app/templates
           - cp -r lib /app/lib
-          - cp app.py config.json wsgi.py /app/
+          - cp app.py config.json wsgi.py mezzo /app/
       sources:
           - type: dir
             path: .

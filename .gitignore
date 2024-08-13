@@ -3,5 +3,9 @@ env
 covers
 *.json
 *.db
-*.txt
 *.wal
+flatpak-pip-generator
+.flatpak-builder
+wheels
+packages
+build-dir

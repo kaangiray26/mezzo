@@ -1,5 +1,5 @@
 Flask
-duckdb
 mutagen
 requests
 gevent
+duckdb
