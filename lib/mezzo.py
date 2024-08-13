@@ -16,12 +16,13 @@ def escape(string):
     return string.replace("'", "''")
 
 class Scanner:
-    def __init__(self):
+    def __init__(self, app_path):
         # Read config
         with open("config.json", "r") as f:
             self.config = json.load(f)
 
         # Set variables
+        self.app_path = app_path
         self.library = {
             "artists":{},
             "albums":{},
@@ -72,7 +73,7 @@ class Scanner:
 
         # Download image to covers directory
         id = str(uuid4())
-        cover_path = os.path.join("covers", id)
+        cover_path = os.path.join(self.app_path, "covers", id)
         with requests.get(image_url) as r:
             with open(cover_path, "wb") as f:
                 f.write(r.content)
@@ -97,7 +98,7 @@ class Scanner:
 
     def add_cover(self, album_id, path):
         # Copy cover to covers directory as album_id.extension
-        cover_path = os.path.join("covers", album_id)
+        cover_path = os.path.join(self.app_path, "covers", album_id)
         shutil.copyfile(path, cover_path)
 
         # Add cover to library

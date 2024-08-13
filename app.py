@@ -11,13 +11,13 @@ from uuid import uuid4
 
 # Flask app
 app = Flask(__name__)
-app.config['TEMPLATES_AUTO_RELOAD'] = True
+app_path = os.path.expanduser("~/.var/app/org.flatpak.mezzo/data")
 
 # Create covers directory
-os.makedirs("covers", exist_ok=True)
+os.makedirs(os.path.join(app_path, "covers"), exist_ok=True)
 
 # Init duckdb
-con = duckdb.connect("mezzo.db", config = {'threads': 1})
+con = duckdb.connect(os.path.join(app_path, "mezzo.db"), config = {'threads': 1})
 
 # Check for tables
 for create_table in create_tables:
@@ -27,7 +27,7 @@ for create_table in create_tables:
 count = con.sql("SELECT COUNT(*) FROM songs;").fetchone()[0]
 if count == 0:
     # Scan library
-    scanner = Scanner()
+    scanner = Scanner(app_path)
     scanner.scan()
 
     print("Updating library...")
@@ -35,6 +35,7 @@ if count == 0:
     con.sql(scanner.join_albums())
     con.sql(scanner.join_songs())
     print("Library updated.")
+print("Library ready.")
 
 def route_required(func):
     @functools.wraps(func)
@@ -135,7 +136,7 @@ def stream_basic(uuid):
 @app.route("/cover/<uuid>")
 def cover(uuid):
     # Send cover
-    return send_from_directory("covers", uuid)
+    return send_from_directory(os.path.join(app_path, "covers"), uuid);
 
 @app.route("/queue", methods=["POST"])
 def queue():
@@ -146,5 +147,10 @@ def queue():
         return render_template("queue.html", songs=[])
 
     # Get songs
-    songs = con.sql(f"SELECT * FROM songs WHERE id IN ({','.join(map(lambda x: f'\'{x}\'', queue))}) ORDER BY case id { ' '.join([f'when \'{x}\' then {i}' for i, x in enumerate(queue)]) } end;").fetchall()
+    # Without backslashes
+    arr = ','.join(map(lambda x: repr(str(x)), queue))
+    songs = con.sql(f"SELECT * FROM songs WHERE id IN ({arr})").fetchall()
+
+    # Sort songs by queue
+    songs = sorted(songs, key=lambda x: queue.index(str(x[0])))
     return render_template("queue.html", songs=songs)

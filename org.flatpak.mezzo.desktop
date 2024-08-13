@@ -1,0 +1,9 @@
+[Desktop Entry]
+Categories=Audio;Music;Player;AudioVideo;
+Comment=Music player designed to function like major streaming platforms
+Exec=org.flatpak.mezzo.sh
+Icon=org.flatpak.mezzo
+Name=Mezzo
+Terminal=false
+Type=Application
+Version=1.0

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+docker build -t flatpak-wheels .
+docker run --name flatpak-wheels flatpak-wheels
+
+# Copy wheels.tar.gz to the host
+docker cp flatpak-wheels:/app/wheels.tar.gz wheels.tar.gz

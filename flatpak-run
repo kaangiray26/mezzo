@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Clean up
+rm -rf .flatpak-builder
+rm -rf build-dir
+rm -rf covers
+rm mezzo.db
+rm mezzo.db.wal
+
+flatpak-builder --force-clean --install --user build-dir manifest.yml
+flatpak run org.flatpak.mezzo

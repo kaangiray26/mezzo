@@ -1,27 +1,55 @@
 id: org.flatpak.mezzo
-runtime: org.freedesktop.Platform
+runtime: org.freedesktop.Sdk
 runtime-version: "23.08"
 sdk: org.freedesktop.Sdk
-command: /app/mezzo
+command: org.flatpak.mezzo.sh
 finish-args:
     - --share=network
     - --socket=x11
     - --socket=wayland
     - --device=dri
     - --filesystem=home
-
+    - --filesystem=~/.var/app/org.flatpak.mezzo/data
 modules:
-    - name: python3
+    - name: python
       buildsystem: simple
       build-commands:
           - mkdir -p /app/wheels
-          - cp packages/* /app/wheels/
-          - pip3 install --no-cache-dir /app/wheels/*.whl --target=/app/lib
-          - mkdir -p /app/lib /app/static /app/templates
+          - cp wheels/*.whl /app/wheels/
+          - pip install --no-cache-dir /app/wheels/*.whl -t /app/
           - cp -r static /app/static
           - cp -r templates /app/templates
           - cp -r lib /app/lib
-          - cp app.py config.json wsgi.py mezzo /app/
+          - cp app.py wsgi.py config.json /app/
       sources:
           - type: dir
             path: .
+
+    - name: mezzo
+      buildsystem: simple
+      build-commands:
+          - install -Dm755 ${FLATPAK_ID}.sh -t /app/bin
+          - install -Dm755 ${FLATPAK_ID}.desktop -t /app/share/applications
+          - install -Dm644 icon_16.png -t /app/share/icons/hicolor/16x16/apps/${FLATPAK_ID}.png
+          - install -Dm644 icon_32.png -t /app/share/icons/hicolor/32x32/apps/${FLATPAK_ID}.png
+          - install -Dm644 icon_64.png -t /app/share/icons/hicolor/64x64/apps/${FLATPAK_ID}.png
+          - install -Dm644 icon_128.png -t /app/share/icons/hicolor/128x128/apps/${FLATPAK_ID}.png
+          - install -Dm644 icon_256.png -t /app/share/icons/hicolor/256x256/apps/${FLATPAK_ID}.png
+          - install -Dm644 icon_512.png -t /app/share/icons/hicolor/512x512/apps/${FLATPAK_ID}.png
+      sources:
+          - type: file
+            path: org.flatpak.mezzo.sh
+          - type: file
+            path: org.flatpak.mezzo.desktop
+          - type: file
+            path: icons/icon_16.png
+          - type: file
+            path: icons/icon_32.png
+          - type: file
+            path: icons/icon_64.png
+          - type: file
+            path: icons/icon_128.png
+          - type: file
+            path: icons/icon_256.png
+          - type: file
+            path: icons/icon_512.png
