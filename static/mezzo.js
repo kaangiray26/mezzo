@@ -215,25 +215,13 @@ class Mezzo {
         dialog.close();
     }
 
-    async openSongMenu(ev, el, song, artist, album) {
-        ev.preventDefault();
-        // Get element location
-        let rect = el.getBoundingClientRect();
-        console.log(rect);
+    async openContext(ev, el, song, artist, album) {
+        ev.stopPropagation();
 
-        // Get dialog
-        let dialog = document.querySelector(`.song-menu`);
-
-        // Set uuid
-        dialog.setAttribute("song", song);
-        dialog.setAttribute("artist", artist);
-        dialog.setAttribute("album", album);
-
-        // Set dialog position
-        dialog.style.top = `${ev.clientY}px`;
-        dialog.style.left = `${ev.clientX}px`;
-
-        dialog.showModal();
+        // Get dropdown
+        let dropwdown = el.parentElement.querySelector(`.dropdown-menu`);
+        dropwdown.setAttribute("open", "true");
+        this.is_dialog_open = true;
     }
 
     async openSettings(ev, el) {
@@ -255,7 +243,20 @@ class Mezzo {
         await fetch("/exit", {
             method: "POST",
         });
-        window.location.href = "/";
+        // What to do here?
+        window.location.href = "about:blank";
+    }
+
+    async addToQueue(song) {
+        this.queue.push(song);
+    }
+
+    async goToAlbum(album) {
+        route(`/album/${album}`);
+    }
+
+    async goToArtist(artist) {
+        route(`/artist/${artist}`);
     }
 }
 
@@ -306,30 +307,4 @@ async function search(ev, query) {
 
 async function focusSearch() {
     document.querySelector("search input").focus();
-}
-
-async function songmenu_action(action, el) {
-    // Get song
-    let dialog = el.closest(".song-menu");
-    let song = dialog.getAttribute("song");
-
-    // Get action
-    switch (action) {
-        case "play":
-            window.mezzo.playSong(song);
-            break;
-        case "addToQueue":
-            window.mezzo.queue.push(song);
-            break;
-        case "goToAlbum":
-            let album = dialog.getAttribute("album");
-            route(`/album/${album}`);
-            break;
-        case "goToArtist":
-            let artist = dialog.getAttribute("artist");
-            route(`/artist/${artist}`);
-            break;
-    }
-
-    dialog.close();
 }

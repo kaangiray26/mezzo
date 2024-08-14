@@ -14,7 +14,7 @@
                     class="btn-play"
                     onclick="mezzo.playAlbum('{{ album[0] }}')"
                 >
-                    <span icon>play_arrow</span>
+                    <span icon-only>play_arrow</span>
                 </button>
             </div>
         </div>
@@ -22,12 +22,36 @@
             {% for song in songs %}
             <li
                 class="track"
-                onclick="mezzo.playSong('{{ song[0] }}')"
                 oncontextmenu="mezzo.openSongMenu(event, this, '{{ song[0] }}', '{{ song[3]}}', '{{ song[4] }}')"
             >
-                <span class="track-number">{{ loop.index }}</span>
-                <span class="track-title">{{ song[1] }}</span>
-                <span class="track-duration">2:23</span>
+                <div
+                    class="track-details"
+                    onclick="mezzo.playSong('{{ song[0] }}')"
+                >
+                    <span class="track-number">{{ loop.index }}</span>
+                    <span class="track-title">{{ song[1] }}</span>
+                    <span class="track-duration">2:23</span>
+                </div>
+                <div class="dropdown">
+                    <button
+                        class="btn-option"
+                        onclick="mezzo.openContext(event, this)"
+                    >
+                        <span icon-only>more_vert</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li onclick="mezzo.playSong('{{ song[0] }}')">Play</li>
+                        <li onclick="mezzo.addToQueue('{{ song[0] }}')">
+                            Add to queue
+                        </li>
+                        <li onclick="mezzo.goToAlbum('{{ song[4]}}')">
+                            Go to album
+                        </li>
+                        <li onclick="mezzo.goToArtist('{{ song[3] }}')">
+                            Go to artist
+                        </li>
+                    </ul>
+                </div>
             </li>
             {% endfor %}
         </ul>

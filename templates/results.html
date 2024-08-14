@@ -32,17 +32,38 @@
     </div>
     {% endif %} {% if results.songs %}
     <h3>Songs</h3>
-    <ul class="song-results">
+    <ul class="tracklist">
         {% for song in results.songs %}
-        <li
-            class="song-result"
-            onclick="mezzo.playSong('{{ song[0] }}')"
-            oncontextmenu="mezzo.openSongMenu(event, this, '{{ song[0] }}', '{{ song[2]}}', '{{ song[3] }}')"
-        >
-            <span class="track-title">{{ song[1] }}</span>
-            <span class="track-title">{{ song[4] }}</span>
-            <span class="track-title">{{ song[5] }}</span>
-            <span class="track-duration">2:23</span>
+        <li class="track">
+            <div
+                class="track-details"
+                onclick="mezzo.playSong('{{ song[0] }}')"
+            >
+                <span class="track-title">{{ song[1] }}</span>
+                <span class="track-title">{{ song[4] }}</span>
+                <span class="track-title">{{ song[5] }}</span>
+                <span class="track-duration">2:23</span>
+            </div>
+            <div class="dropdown">
+                <button
+                    class="btn-option"
+                    onclick="mezzo.openContext(event, this)"
+                >
+                    <span icon-only>more_vert</span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li onclick="mezzo.playSong('{{ song[0] }}')">Play</li>
+                    <li onclick="mezzo.addToQueue('{{ song[0] }}')">
+                        Add to queue
+                    </li>
+                    <li onclick="mezzo.goToAlbum('{{ song[3]}}')">
+                        Go to album
+                    </li>
+                    <li onclick="mezzo.goToArtist('{{ song[2] }}')">
+                        Go to artist
+                    </li>
+                </ul>
+            </div>
         </li>
         {% endfor %}
     </ul>

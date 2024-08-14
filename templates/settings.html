@@ -1,5 +1,11 @@
-<dialog class="settings">
-    <ul>
-        <li>Exit</li
+<div class="dropdown">
+    <a type="button" onclick="mezzo.openSettings(event, this)">
+        <span icon-only>more_vert</span>
+    </a>
+    <ul id="settings" class="dropdown-menu">
+        <li onclick="mezzo.exit()">
+            <span icon>logout</span>
+            <span>Log out</span>
+        </li>
     </ul>
-</dialog>
+</div>
