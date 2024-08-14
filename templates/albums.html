@@ -5,6 +5,7 @@
             {% for album in albums %}
             <div class="item" onclick="route('/album/{{album[0]}}')">
                 <img
+                    loading="lazy"
                     src="/cover/{{ album[0] }}"
                     onerror="this.src='/static/deadend.svg'"
                 />

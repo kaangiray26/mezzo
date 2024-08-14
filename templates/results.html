@@ -5,6 +5,7 @@
         {% for result in results.artists %}
         <div class="artist-result" onclick="route('/artist/{{result[0]}}')">
             <img
+                loading="lazy"
                 src="/cover/{{ result[2] }}"
                 onerror="this.src='/static/deadend.svg'"
             />
@@ -19,6 +20,7 @@
             {% for album in results.albums %}
             <div class="item" onclick="route('/album/{{album[0]}}')">
                 <img
+                    loading="lazy"
                     src="/cover/{{ album[0] }}"
                     onerror="this.src='/static/deadend.svg'"
                 />

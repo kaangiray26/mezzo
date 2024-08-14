@@ -1,3 +1,4 @@
+// Event Listeners
 window.onpopstate = (event) => {
     route(window.location.pathname);
 };
@@ -19,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
 class Mezzo {
     constructor() {
         this.queue = [];
-        this.preview = false;
         this.player = new Howl({
             src: [null],
             format: ["flac", "mp3", "ogg", "wav", "aac", "m4a", "opus", "webm"],
@@ -53,7 +53,25 @@ class Mezzo {
             this.prev();
         });
 
+        // Set boolean states
+        this.is_dialog_open = false;
+
+        // Mouse click event
+        document.addEventListener("click", (ev) => {
+            // Check for dialog
+            if (this.is_dialog_open) this.dialogCheck();
+        });
+
+        // ESC key event
+        document.addEventListener("keydown", (ev) => {
+            if (ev.key === "Escape") this.dialogCheck();
+        });
+
         console.log("Mezzo player initialized.");
+    }
+
+    async dialogCheck() {
+        if (this.is_dialog_open) this.closeAllDialogs();
     }
 
     async track_finished() {
@@ -216,6 +234,28 @@ class Mezzo {
         dialog.style.left = `${ev.clientX}px`;
 
         dialog.showModal();
+    }
+
+    async openSettings(ev, el) {
+        ev.stopPropagation();
+
+        // Get dropdown
+        let dropwdown = document.querySelector(`#settings`);
+        dropwdown.setAttribute("open", "true");
+        this.is_dialog_open = true;
+    }
+
+    async closeAllDialogs() {
+        let dialogs = [...document.querySelectorAll(".dropdown-menu")];
+        dialogs.map(async (dialog) => dialog.removeAttribute("open"));
+        this.is_dialog_open = false;
+    }
+
+    async exit() {
+        await fetch("/exit", {
+            method: "POST",
+        });
+        window.location.href = "/";
     }
 }
 

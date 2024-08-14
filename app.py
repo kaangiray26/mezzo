@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import signal
 import duckdb
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, send_from_directory
 import functools
@@ -11,6 +12,7 @@ from uuid import uuid4
 
 # Flask app
 app = Flask(__name__)
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 app_path = os.path.expanduser("~/.var/app/org.flatpak.mezzo/data")
 
 # Create covers directory
@@ -154,3 +156,11 @@ def queue():
     # Sort songs by queue
     songs = sorted(songs, key=lambda x: queue.index(str(x[0])))
     return render_template("queue.html", songs=songs)
+
+@app.route("/exit", methods=["POST"])
+def exit():
+    # Create signal.SIGINT
+    os.kill(os.getpid(), signal.SIGINT)
+    return {
+        "data": "Goodbye!"
+    }

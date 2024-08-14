@@ -1,4 +1,18 @@
 <navbar>
+    <div class="navbar-buttons left">
+        <a
+            type="button"
+            onclick="route('/search', focusSearch)"
+            {%
+            if
+            route=="/search"
+            %}active{%
+            endif
+            %}
+        >
+            <span icon-only>search</span>
+        </a>
+    </div>
     <div class="navbar-buttons">
         <a
             type="button"
@@ -39,18 +53,15 @@
             <span icon>queue_music</span>
             <span>Playlists</span>
         </a>
-        <a
-            type="button"
-            onclick="route('/search', focusSearch)"
-            {%
-            if
-            route=="/search"
-            %}active{%
-            endif
-            %}
-        >
-            <span icon>search</span>
-            <span>Search</span>
-        </a>
+    </div>
+    <div class="navbar-buttons right">
+        <div class="dropdown">
+            <a type="button" onclick="mezzo.openSettings(event, this)">
+                <span icon-only>more_vert</span>
+            </a>
+            <ul id="settings" class="dropdown-menu">
+                <li onclick="mezzo.exit()">Exit</li>
+            </ul>
+        </div>
     </div>
 </navbar>

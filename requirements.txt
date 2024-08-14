@@ -1,4 +1,5 @@
 Flask
+flaskwebgui
 mutagen
 requests
 gevent
