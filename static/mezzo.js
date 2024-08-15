@@ -171,7 +171,24 @@ class Mezzo {
         this.playQueue();
     }
 
+    async playPlaylist(uuid) {
+        // Get playlist songs
+        let res = await fetch(`/playlist/${uuid}/songs`).then((res) =>
+            res.json(),
+        );
+        console.log(res);
+
+        // Add songs to queue
+        this.queue = res["songs"];
+
+        // Start playing
+        this.playQueue();
+    }
+
     async seek(float) {
+        // Check if any song is loaded
+        if (!this.player._src[0]) return;
+
         let duration = this.player.duration();
         this.player._sounds[0]._node.currentTime = duration * float;
     }
@@ -184,7 +201,7 @@ class Mezzo {
     }
 
     async next() {
-        if (!this.queue) return;
+        if (!this.queue.length) return;
 
         // Play next song
         let song = this.queue.shift();
@@ -194,6 +211,26 @@ class Mezzo {
 
     async prev() {
         return;
+    }
+
+    async openPlaylistSelection(uuid) {
+        // Get playlists
+        let res = await fetch(`/playlists/select/${uuid}`).then((res) =>
+            res.text(),
+        );
+        let dialog = document.querySelector("#dialog");
+        dialog.innerHTML = res;
+        dialog.showModal();
+    }
+
+    async selectPlaylist(el) {
+        if (el.getAttribute("checked")) {
+            // Uncheck element
+            el.removeAttribute("checked");
+            return;
+        }
+        // Check element
+        el.setAttribute("checked", "true");
     }
 
     async openQueue() {
@@ -210,7 +247,7 @@ class Mezzo {
         dialog.showModal();
     }
 
-    async closeQueue() {
+    async closeDialog() {
         let dialog = document.querySelector("#dialog");
         dialog.close();
     }
@@ -257,6 +294,32 @@ class Mezzo {
 
     async goToArtist(artist) {
         route(`/artist/${artist}`);
+    }
+
+    async addToPlaylist(song) {
+        // Get selected playlists
+        let playlists = [...document.querySelectorAll(`[checked]`)].map((el) =>
+            el.getAttribute("uuid"),
+        );
+
+        if (!playlists.length) return;
+
+        // Close dialog
+        this.closeDialog();
+
+        // Add song to playlists
+        playlists.map(async (playlist) => {
+            await fetch("/playlist/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    song: song,
+                    playlist: playlist,
+                }),
+            });
+        });
     }
 }
 
@@ -307,4 +370,13 @@ async function search(ev, query) {
 
 async function focusSearch() {
     document.querySelector("search input").focus();
+}
+
+async function loadPlaylist(uuid) {
+    // Get playlist
+    console.log(uuid);
+    let res = await fetch(`/playlist/${uuid}`).then((res) => res.text());
+
+    // Load playlist into the <playlist-view> element
+    document.querySelector("playlist-view").innerHTML = res;
 }

@@ -1,2 +1,30 @@
 {% with route='/playlists' %} {% include 'navbar.html' %} {% endwith %}
-<main></main>
+<main class="nopadding">
+    <div class="playlists-tabs">
+        <div class="playlists-tabs-left">
+            <ul>
+                <li
+                    onclick="loadPlaylist('00000000-0000-0000-0000-000000000001')"
+                >
+                    <span icon>star</span>
+                    <span>Favorite Songs</span>
+                </li>
+                <li
+                    onclick="loadPlaylist('00000000-0000-0000-0000-000000000002')"
+                >
+                    <span icon>mode_heat</span>
+                    <span>Most played</span>
+                </li>
+                <li
+                    onclick="loadPlaylist('00000000-0000-0000-0000-000000000003')"
+                >
+                    <span icon>headphones</span>
+                    <span>Recently Played</span>
+                </li>
+            </ul>
+        </div>
+        <div class="playlists-tabs-right">
+            <playlist-view></playlist-view>
+        </div>
+    </div>
+</main>

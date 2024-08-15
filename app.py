@@ -7,8 +7,8 @@ import duckdb
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, send_from_directory
 import functools
 from lib.mezzo import Scanner
-from lib.db import create_tables
-from uuid import uuid4
+from lib.db import create_tables, default_playlists
+from uuid import uuid4, UUID
 
 # Flask app
 app = Flask(__name__)
@@ -22,8 +22,10 @@ os.makedirs(os.path.join(app_path, "covers"), exist_ok=True)
 con = duckdb.connect(os.path.join(app_path, "mezzo.db"), config = {'threads': 1})
 
 # Check for tables
-for create_table in create_tables:
-    con.execute(create_table)
+tables = con.sql("SHOW TABLES;").fetchall()
+if not len(tables):
+    for create_table in create_tables:
+        con.execute(create_table)
 
 # Update library
 count = con.sql("SELECT COUNT(*) FROM songs;").fetchone()[0]
@@ -36,7 +38,6 @@ if count == 0:
     con.sql(scanner.join_artists())
     con.sql(scanner.join_albums())
     con.sql(scanner.join_songs())
-    print("Library updated.")
 print("Library ready.")
 
 def route_required(func):
@@ -120,6 +121,58 @@ def artist_songs(uuid):
 @route_required
 def playlists():
     return render_template("playlists.html")
+
+@app.route("/playlists/select/<uuid>")
+def playlists_select(uuid):
+    # Get playlists
+    playlists = con.sql("SELECT id, name FROM playlists ORDER BY name;").fetchall()
+    return render_template("select_playlist.html", playlists=playlists, song=uuid)
+
+@app.route("/playlist/add/", methods=["POST"])
+def playlist_add():
+    # Get playlist and song from body
+    data = request.json
+    song_id = data["song"]
+    playlist_id = data["playlist"]
+
+    # Get songs from playlist
+    playlist = con.sql(f"SELECT * FROM playlists WHERE id = '{playlist_id}';").fetchone()
+
+    # Add song to playlist
+    playlist[2].append(song_id)
+
+    # Delete playlist
+    con.sql(f"DELETE FROM playlists WHERE id = '{playlist_id}';")
+
+    # Insert playlist
+    con.execute("INSERT INTO playlists (id, name, songs) VALUES (?, ?, ?);", (playlist[0], playlist[1], playlist[2]))
+
+    return {
+        "status": "success"
+    }
+
+@app.route("/playlist/<uuid>")
+def playlist(uuid):
+    # Get playlist
+    playlist = con.sql(f"SELECT * FROM playlists WHERE id = '{uuid}';").fetchone()
+
+    if not len(playlist[2]):
+        return render_template("playlist.html", playlist=playlist, songs=[])
+
+    # Get songs from playlist
+    st = str(tuple(map(str, playlist[2])))
+    songs = con.sql("SELECT songs.id, songs.name, songs.artist, songs.album, artists.name, albums.name FROM songs JOIN artists ON songs.artist = artists.id JOIN albums ON songs.album = albums.id WHERE songs.id IN " + st + ";").fetchall()
+
+    return render_template("playlist.html", playlist=playlist, songs=songs)
+
+@app.route("/playlist/<uuid>/songs")
+def playlist_songs(uuid):
+    # Get playlist
+    songs = con.sql(f"SELECT songs FROM playlists WHERE id = '{uuid}';").fetchone()
+
+    return {
+        "songs": list(map(lambda x: x, songs[0]))
+    }
 
 @app.route("/stream/<uuid>")
 def stream(uuid):

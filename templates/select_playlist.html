@@ -1,0 +1,31 @@
+<div class="queue-modal">
+    <div class="queue-header">
+        <h3>Add to Playlist</h3>
+        <button class="btn-light" onclick="mezzo.closeDialog()">
+            <h3 icon>close</h3>
+        </button>
+    </div>
+    {% if playlists %}
+    <ul class="playlist-selections">
+        {% for playlist in playlists %}
+        <li
+            class="playlist-selection"
+            onclick="mezzo.selectPlaylist(this)"
+            uuid="{{ playlist[0] }}"
+        >
+            <span class="playlist-title">{{ playlist[1] }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    <div class="playlist-selections-buttons">
+        <a
+            type="button"
+            color="blue"
+            onclick="mezzo.addToPlaylist('{{ song }}')"
+        >
+            <span icon>add</span>
+            <span>Add</span>
+        </a>
+    </div>
+    {% endif %}
+</div>

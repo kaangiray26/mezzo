@@ -1,0 +1,28 @@
+<div class="playlist-front">
+    <h1>{{ playlist[1] }}</h1>
+    <p>{{ songs|length }} {{ 'song' if songs|length == 1 else 'songs' }}</p>
+    <div class="playlist-buttons">
+        <button
+            class="btn-play"
+            onclick="mezzo.playPlaylist('{{ playlist[0] }}')"
+        >
+            <span icon-only>play_arrow</span>
+        </button>
+        <button class="btn-play">
+            <span icon-only>more_vert</span>
+        </button>
+    </div>
+</div>
+{% if songs %}
+<ul class="tracklist">
+    {% for song in songs %}
+    <li class="track">
+        <div class="track-details">
+            <span class="track-number">{{ loop.index }}</span>
+            <span class="track-title">{{ song[1] }}</span>
+            <span class="track-duration">2:23</span>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}

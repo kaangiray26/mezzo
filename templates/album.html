@@ -42,13 +42,18 @@
                     <ul class="dropdown-menu">
                         <li onclick="mezzo.playSong('{{ song[0] }}')">Play</li>
                         <li onclick="mezzo.addToQueue('{{ song[0] }}')">
-                            Add to queue
+                            Add to Queue
                         </li>
                         <li onclick="mezzo.goToAlbum('{{ song[4]}}')">
-                            Go to album
+                            Go to Album
                         </li>
                         <li onclick="mezzo.goToArtist('{{ song[3] }}')">
-                            Go to artist
+                            Go to Artist
+                        </li>
+                        <li
+                            onclick="mezzo.openPlaylistSelection('{{ song[0] }}')"
+                        >
+                            Add to Playlist...
                         </li>
                     </ul>
                 </div>
