@@ -1,6 +1,5 @@
-Flask
-flaskwebgui
+quart
 mutagen
 requests
 gevent
-duckdb
+aiosqlite

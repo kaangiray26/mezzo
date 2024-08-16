@@ -61,6 +61,7 @@ class Scanner:
             time.sleep(0.1)
 
         # Get artist cover from spotify
+        print(f"Checking cover for: {name}...")
         url = "https://api.spotify.com/v1/search"
         with requests.get(url, params = {"q": name, "type": "artist", "limit": 1}, headers = {"Authorization": f"Bearer {self.spotify_access_token}"}) as r:
             if r.status_code != 200:
@@ -69,16 +70,17 @@ class Scanner:
             # Parse data
             data = r.json()
             image_url = data["artists"]["items"][0]["images"][0]["url"]
-            print("Got cover for:", name, image_url)
 
-        # Download image to covers directory
-        id = str(uuid4())
-        cover_path = os.path.join(self.app_path, "covers", id)
-        with requests.get(image_url) as r:
-            with open(cover_path, "wb") as f:
-                f.write(r.content)
+        # Check if image is already downloaded
+        spotify_id = image_url.split("/")[-1]
+        if not os.path.exists(os.path.join(self.app_path, "covers", spotify_id)):
+            # Download image to covers directory
+            cover_path = os.path.join(self.app_path, "covers", spotify_id)
+            with requests.get(image_url) as r:
+                with open(cover_path, "wb") as f:
+                    f.write(r.content)
 
-        return id
+        return spotify_id
 
     def get_tags(self, path):
         # Check extension
@@ -86,15 +88,23 @@ class Scanner:
             return EasyID3(path)
         return mutagen.File(path)
 
-    def join_artists(self):
-        # Use items
-        return "INSERT INTO artists VALUES " +", ".join(map(lambda x: "('{}', '{}', '{}')".format(x[0], escape(x[1]['name']), escape(x[1]['cover'])), self.library["artists"].items()))
+    def get_artists(self):
+        # Get artists
+        # Example: (id, name, cover)
+        artists = list(map(lambda x: (x[0], x[1]["name"], x[1]["cover"]), self.library["artists"].items()))
+        return "INSERT INTO artists(id, name, cover) VALUES (?, ?, ?)", artists
 
-    def join_albums(self):
-        return "INSERT INTO albums VALUES " + ", ".join(map(lambda x: "('{}', '{}', '{}', '{}')".format(x[0], escape(x[1]['name']), x[1]['artist'], escape(x[1]['cover'])), self.library["albums"].items()))
+    def get_albums(self):
+        # Get albums
+        # Example: (id, name, artist, cover)
+        albums = list(map(lambda x: (x[0], x[1]["name"], x[1]["artist"], x[1]["cover"]), self.library["albums"].items()))
+        return "INSERT INTO albums(id, name, artist, cover) VALUES (?, ?, ?, ?)", albums
 
-    def join_songs(self):
-        return "INSERT INTO songs VALUES " + ", ".join(map(lambda x: "('{}', '{}', '{}', '{}', '{}', '{}', '{}')".format(x[0], escape(x[1]['name']), escape(x[1]['path']), x[1]['artist'], x[1]['album'], x[1]['discnumber'], x[1]['tracknumber']), self.library["songs"].items()))
+    def get_songs(self):
+        # Get songs
+        # Example: (id, name, path, artist, album, discnumber, tracknumber)
+        songs = list(map(lambda x: (x[0], x[1]["name"], x[1]["path"], x[1]["artist"], x[1]["album"], x[1]["discnumber"], x[1]["tracknumber"]), self.library["songs"].items()))
+        return "INSERT INTO songs(id, name, path, artist, album, discnumber, tracknumber) VALUES (?, ?, ?, ?, ?, ?, ?)", songs
 
     def add_cover(self, album_id, path):
         # Copy cover to covers directory as album_id.extension

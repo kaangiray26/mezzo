@@ -3,69 +3,98 @@
 
 import os
 import signal
-import duckdb
-from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, send_from_directory
-import functools
+import asyncio
+import aiosqlite
+from quart import Quart, request, render_template, redirect, url_for, send_file, jsonify, send_from_directory, g
+from functools import wraps
 from lib.mezzo import Scanner
 from lib.db import create_tables, default_playlists
 from uuid import uuid4, UUID
 
-# Flask app
-app = Flask(__name__)
+# Quart app
+app = Quart(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app_path = os.path.expanduser("~/.var/app/org.flatpak.mezzo/data")
 
 # Create covers directory
 os.makedirs(os.path.join(app_path, "covers"), exist_ok=True)
 
-# Init duckdb
-con = duckdb.connect(os.path.join(app_path, "mezzo.db"), config = {'threads': 1})
+async def _connect_db():
+    return await aiosqlite.connect(os.path.join(app_path, "mezzo.db"))
 
-# Check for tables
-tables = con.sql("SHOW TABLES;").fetchall()
-if not len(tables):
-    for create_table in create_tables:
-        con.execute(create_table)
-
-# Update library
-count = con.sql("SELECT COUNT(*) FROM songs;").fetchone()[0]
-if count == 0:
-    # Scan library
-    scanner = Scanner(app_path)
-    scanner.scan()
-
-    print("Updating library...")
-    con.sql(scanner.join_artists())
-    con.sql(scanner.join_albums())
-    con.sql(scanner.join_songs())
-print("Library ready.")
+async def _get_db():
+    if not hasattr(g, "db"):
+        g.db = await _connect_db()
+    return g.db
 
 def route_required(func):
-    @functools.wraps(func)
-    def route(*args, **kwargs):
+    @wraps(func)
+    async def route(*args, **kwargs):
         if "X-Requested-From" not in request.headers:
             return redirect(url_for("index", path=[request.path]))
-        return func(*args, **kwargs)
+        return await func(*args, **kwargs)
     return route
 
+@app.before_serving
+async def startup():
+    async with aiosqlite.connect(os.path.join(app_path, "mezzo.db")) as db:
+        # Check for tables
+        cursor = await db.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = await cursor.fetchall()
+
+        if not len(tables):
+            for create_table in create_tables:
+                await db.execute(create_table)
+            await db.commit()
+
+        # Update library
+        cursor = await db.execute("SELECT COUNT(*) FROM songs;")
+        count = await cursor.fetchone()
+
+        # Check if songs table is empty
+        if count[0] == 0:
+            # Scan library
+            scanner = Scanner(app_path)
+            scanner.scan()
+
+            print("Updating library...")
+            await db.executemany(*scanner.get_artists())
+            await db.executemany(*scanner.get_albums())
+            await db.executemany(*scanner.get_songs())
+            await db.commit()
+    print("Library ready.")
+
+@app.after_serving
+async def shutdown():
+    pass
+
 @app.route("/")
-def index():
-    return render_template("index.html")
+async def index():
+    return await render_template("index.html")
 
 @app.route("/search")
 @route_required
-def search():
-    return render_template("search.html")
+async def search():
+    return await render_template("search.html")
 
 @app.route("/query")
-def search_query():
+async def search_query():
     query = request.args.get("q")
-    print("Searching for:", query)
-    artists = con.sql(f"SELECT * FROM artists WHERE name ILIKE '%{query}%' ORDER BY name;").fetchall()
-    albums = con.sql(f"SELECT albums.id, albums.name, albums.artist, albums.cover, artists.name FROM albums JOIN artists ON albums.artist = artists.id WHERE albums.name ILIKE '%{query}%' ORDER BY albums.name;").fetchall()
-    songs = con.sql(f"SELECT songs.id, songs.name, songs.artist, songs.album, artists.name, albums.name FROM songs JOIN artists ON songs.artist = artists.id JOIN albums ON songs.album = albums.id WHERE songs.name ILIKE '%{query}%' ORDER BY songs.name;").fetchall()
+    db = await _get_db()
 
-    return render_template("results.html", results={
+    # Get artist results
+    cursor = await db.execute(f"SELECT * FROM artists WHERE name LIKE '%{query}%' ORDER BY name;")
+    artists = await cursor.fetchall()
+
+    # Get album results
+    cursor = await db.execute(f"SELECT albums.id, albums.name, albums.artist, albums.cover, artists.name FROM albums JOIN artists ON albums.artist = artists.id WHERE albums.name LIKE '%{query}%' ORDER BY albums.name;")
+    albums = await cursor.fetchall()
+
+    # Get song results
+    cursor = await db.execute(f"SELECT songs.id, songs.name, songs.artist, songs.album, artists.name, albums.name FROM songs JOIN artists ON songs.artist = artists.id JOIN albums ON songs.album = albums.id WHERE songs.name LIKE '%{query}%' ORDER BY songs.name;")
+    songs = await cursor.fetchall()
+
+    return await render_template("results.html", results={
         "artists": artists,
         "albums": albums,
         "songs": songs
@@ -73,147 +102,181 @@ def search_query():
 
 @app.route("/albums")
 @route_required
-def albums():
+async def albums():
+    db = await _get_db()
+
     # Get albums
-    albums = con.sql("SELECT albums.id, albums.name, artists.name FROM albums JOIN artists ON albums.artist = artists.id ORDER BY albums.name;").fetchall()
-    return render_template("albums.html", albums=albums)
+    cursor = await db.execute("SELECT albums.id, albums.name, artists.name FROM albums JOIN artists ON albums.artist = artists.id ORDER BY albums.name;")
+    albums = await cursor.fetchall()
+    return await render_template("albums.html", albums=albums)
 
 @app.route("/album/<uuid>")
 @route_required
-def album(uuid):
+async def album(uuid):
+    db = await _get_db()
+
     # Get album
-    album = con.sql(f"SELECT albums.id, albums.name, artists.name FROM albums JOIN artists ON albums.artist = artists.id WHERE albums.id = '{uuid}';").fetchone()
-    songs = con.sql(f"SELECT * FROM songs WHERE album = '{uuid}' ORDER BY discnumber, tracknumber;").fetchall()
-    return render_template("album.html", album=album, songs=songs)
+    cursor = await db.execute(f"SELECT albums.id, albums.name, artists.name FROM albums JOIN artists ON albums.artist = artists.id WHERE albums.id = '{uuid}';")
+    album = await cursor.fetchone()
+
+    # Get songs
+    cursor = await db.execute(f"SELECT * FROM songs WHERE album = '{uuid}' ORDER BY discnumber, tracknumber;")
+    songs = await cursor.fetchall()
+    return await render_template("album.html", album=album, songs=songs)
 
 @app.route("/album/<uuid>/songs")
-def album_songs(uuid):
+async def album_songs(uuid):
+    db = await _get_db()
+
     # Get songs
-    songs = con.sql(f"SELECT id FROM songs WHERE album = '{uuid}' ORDER BY discnumber, tracknumber;").fetchall()
+    cursor = await db.execute(f"SELECT id FROM songs WHERE album = '{uuid}' ORDER BY discnumber, tracknumber;")
+    songs = await cursor.fetchall()
     return {
         "songs": list(map(lambda x: x[0], songs))
     }
 
 @app.route("/artists")
 @route_required
-def artists():
+async def artists():
+    db = await _get_db()
+
     # Get artists
-    artists = con.sql("SELECT * FROM artists ORDER BY name;").fetchall()
-    return render_template("artists.html", artists=artists)
+    cursor = await db.execute("SELECT * FROM artists ORDER BY name;")
+    artists = await cursor.fetchall()
+    return await render_template("artists.html", artists=artists)
 
 @app.route("/artist/<uuid>")
 @route_required
-def artist(uuid):
+async def artist(uuid):
+    db = await _get_db()
+
     # Get artist
-    artist = con.sql(f"SELECT * FROM artists WHERE id = '{uuid}';").fetchone()
-    albums = con.sql(f"SELECT * FROM albums WHERE artist = '{uuid}' ORDER BY name;").fetchall()
-    return render_template("artist.html", artist=artist, albums=albums)
+    cursor = await db.execute(f"SELECT * FROM artists WHERE id = '{uuid}';")
+    artist = await cursor.fetchone()
+
+    # Get albums
+    cursor = await db.execute(f"SELECT * FROM albums WHERE artist = '{uuid}' ORDER BY name;")
+    albums = await cursor.fetchall()
+    return await render_template("artist.html", artist=artist, albums=albums)
 
 @app.route("/artist/<uuid>/songs")
-def artist_songs(uuid):
+async def artist_songs(uuid):
+    db = await _get_db()
+
     # Get random songs
-    songs = con.sql(f"SELECT id FROM songs WHERE artist = '{uuid}' ORDER BY RANDOM() LIMIT 12;").fetchall()
+    cursor = await db.execute(f"SELECT id FROM songs WHERE artist = '{uuid}' ORDER BY RANDOM() LIMIT 12;")
+    songs = await cursor.fetchall()
     return {
         "songs": list(map(lambda x: x[0], songs))
     }
 
 @app.route("/playlists")
 @route_required
-def playlists():
-    return render_template("playlists.html")
+async def playlists():
+    return await render_template("playlists.html")
 
 @app.route("/playlists/select/<uuid>")
-def playlists_select(uuid):
-    # Get playlists
-    playlists = con.sql("SELECT id, name FROM playlists ORDER BY name;").fetchall()
-    return render_template("select_playlist.html", playlists=playlists, song=uuid)
+async def playlists_select(uuid):
+    db = await _get_db()
 
-@app.route("/playlist/add/", methods=["POST"])
-def playlist_add():
+    # Get playlists
+    cursor = await db.execute("SELECT id, name FROM playlists ORDER BY name;")
+    playlists = await cursor.fetchall()
+    return await render_template("select_playlist.html", playlists=playlists, song=uuid)
+
+@app.route("/playlist/add", methods=["POST"])
+async def playlist_add():
     # Get playlist and song from body
-    data = request.json
+    data = await request.get_json()
     song_id = data["song"]
     playlist_id = data["playlist"]
 
-    # Get songs from playlist
-    playlist = con.sql(f"SELECT * FROM playlists WHERE id = '{playlist_id}';").fetchone()
+    db = await _get_db()
 
     # Add song to playlist
-    playlist[2].append(song_id)
-
-    # Delete playlist
-    con.sql(f"DELETE FROM playlists WHERE id = '{playlist_id}';")
-
-    # Insert playlist
-    con.execute("INSERT INTO playlists (id, name, songs) VALUES (?, ?, ?);", (playlist[0], playlist[1], playlist[2]))
+    cursor = await db.execute("INSERT INTO playlist_songs (playlist, song) VALUES (?, ?) ON CONFLICT DO NOTHING;", (playlist_id, song_id))
+    await db.commit()
 
     return {
         "status": "success"
     }
 
 @app.route("/playlist/<uuid>")
-def playlist(uuid):
+async def playlist(uuid):
+    db = await _get_db()
+
     # Get playlist
-    playlist = con.sql(f"SELECT * FROM playlists WHERE id = '{uuid}';").fetchone()
+    cursor = await db.execute(f"SELECT * FROM playlists WHERE id = '{uuid}';")
+    playlist = await cursor.fetchone()
 
-    if not len(playlist[2]):
-        return render_template("playlist.html", playlist=playlist, songs=[])
+    # Get songs
+    cursor = await db.execute(f"SELECT songs.id, songs.name, songs.artist, songs.album, artists.name, albums.name FROM songs JOIN artists ON songs.artist = artists.id JOIN albums ON songs.album = albums.id JOIN playlist_songs ON songs.id = playlist_songs.song WHERE playlist_songs.playlist = '{uuid}' ORDER BY playlist_songs.timestamp ASC;")
 
-    # Get songs from playlist
-    st = str(tuple(map(str, playlist[2])))
-    songs = con.sql("SELECT songs.id, songs.name, songs.artist, songs.album, artists.name, albums.name FROM songs JOIN artists ON songs.artist = artists.id JOIN albums ON songs.album = albums.id WHERE songs.id IN " + st + ";").fetchall()
+    songs = await cursor.fetchall()
 
-    return render_template("playlist.html", playlist=playlist, songs=songs)
+    return await render_template("playlist.html", playlist=playlist, songs=songs)
 
 @app.route("/playlist/<uuid>/songs")
-def playlist_songs(uuid):
-    # Get playlist
-    songs = con.sql(f"SELECT songs FROM playlists WHERE id = '{uuid}';").fetchone()
+async def playlist_songs(uuid):
+    db = await _get_db()
+
+    # Get playlist songs
+    cursor = await db.execute(f"SELECT song FROM playlist_songs WHERE playlist = '{uuid}' ORDER BY timestamp ASC;")
+    songs = await cursor.fetchall()
 
     return {
-        "songs": list(map(lambda x: x, songs[0]))
+        "songs": list(map(lambda x: x[0], songs))
     }
 
 @app.route("/stream/<uuid>")
-def stream(uuid):
-    # Get song
-    song = con.sql(f"SELECT * FROM songs WHERE id = '{uuid}';").fetchone()
-    return send_file(song[2])
+async def stream(uuid):
+    db = await _get_db()
+
+    # Get song path
+    cursor = await db.execute(f"SELECT path FROM songs WHERE id = '{uuid}';")
+    song = await cursor.fetchone()
+    return await send_file(song[0])
 
 @app.route("/stream/<uuid>/basic")
-def stream_basic(uuid):
+async def stream_basic(uuid):
+    db = await _get_db()
+
     # Get song
-    song = con.sql(f"SELECT songs.id, songs.name, songs.album, artists.name, albums.name FROM songs JOIN artists ON songs.artist = artists.id JOIN albums ON songs.album = albums.id WHERE songs.id = '{uuid}';").fetchone()
+    cursor = await db.execute(f"SELECT songs.id, songs.name, songs.album, artists.name, albums.name FROM songs JOIN artists ON songs.artist = artists.id JOIN albums ON songs.album = albums.id WHERE songs.id = '{uuid}';")
+    song = await cursor.fetchone()
+
     # Return as JSON with column names
     columns = ["id", "name", "cover", "artist", "album"]
     return dict(zip(columns, song))
 
 @app.route("/cover/<uuid>")
-def cover(uuid):
+async def cover(uuid):
     # Send cover
-    return send_from_directory(os.path.join(app_path, "covers"), uuid);
+    return await send_from_directory(os.path.join(app_path, "covers"), uuid);
 
 @app.route("/queue", methods=["POST"])
-def queue():
+async def queue():
     # Get queue
-    queue = request.json
+    queue = await request.get_json()
 
-    if not queue:
-        return render_template("queue.html", songs=[])
+    if not len(queue):
+        return await render_template("queue.html", songs=[])
+
+    db = await _get_db()
 
     # Get songs
-    # Without backslashes
-    arr = ','.join(map(lambda x: repr(str(x)), queue))
-    songs = con.sql(f"SELECT * FROM songs WHERE id IN ({arr})").fetchall()
+    cursor = await db.execute("SELECT * FROM songs WHERE id IN (" + ",".join(["?" for _ in queue]) + ");", queue)
+    songs = await cursor.fetchall()
 
     # Sort songs by queue
-    songs = sorted(songs, key=lambda x: queue.index(str(x[0])))
-    return render_template("queue.html", songs=songs)
+    songs = sorted(songs, key=lambda x: queue.index(x[0]))
+    return await render_template("queue.html", songs=songs)
 
 @app.route("/exit", methods=["POST"])
-def exit():
-    # Create signal.SIGINT
-    os.kill(os.getpid(), signal.SIGINT)
+async def exit():
+    print("Exiting...")
+    # Create signal.SIGTERM
+    os.kill(os.getpid(), signal.SIGTERM)
     return {
         "data": "Goodbye!"
     }

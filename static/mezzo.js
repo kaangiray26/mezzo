@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 class Mezzo {
     constructor() {
         this.queue = [];
+        this.playing_song = null;
         this.player = new Howl({
             src: [null],
             format: ["flac", "mp3", "ogg", "wav", "aac", "m4a", "opus", "webm"],
@@ -75,10 +76,23 @@ class Mezzo {
     }
 
     async track_finished() {
-        // Checks for playing modes
-        // TODO: Add shuffle and repeat modes
+        // Get song uuid
+        let uuid = this.playing_song;
+
         // Play next song
         this.playQueue();
+
+        // Add song to recently played
+        await fetch("/playlist/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                song: uuid,
+                playlist: "00000000-0000-0000-0000-000000000003",
+            }),
+        });
     }
 
     async on_track_loaded() {
@@ -125,6 +139,9 @@ class Mezzo {
     }
 
     async playSong(uuid) {
+        // Set playing song
+        this.playing_song = uuid;
+
         // Load song
         this.player.unload();
         this.player._src = `/stream/${uuid}`;
@@ -194,7 +211,11 @@ class Mezzo {
     }
 
     async playQueue() {
-        if (!this.queue.length) return;
+        if (!this.queue.length) {
+            this.player.pause();
+            update_ref("player_play", "play_arrow");
+            return;
+        }
 
         let song = this.queue.shift();
         this.playSong(song);
@@ -279,7 +300,7 @@ class Mezzo {
     async exit() {
         await fetch("/exit", {
             method: "POST",
-        });
+        }).catch((err) => (window.location.href = "about:blank"));
         // What to do here?
         window.location.href = "about:blank";
     }

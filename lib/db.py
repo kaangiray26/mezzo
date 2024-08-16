@@ -1,28 +1,28 @@
 artists_table = """
 CREATE TABLE IF NOT EXISTS artists (
-    id UUID PRIMARY KEY,
-    name VARCHAR,
-    cover VARCHAR
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    cover TEXT
 );
 """
 
 albums_table = """
 CREATE TABLE IF NOT EXISTS albums (
-    id UUID PRIMARY KEY,
-    name VARCHAR,
-    artist UUID,
-    cover VARCHAR,
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    artist TEXT,
+    cover TEXT,
     FOREIGN KEY (artist) REFERENCES artists(id)
 );
 """
 
 songs_table = """
 CREATE TABLE IF NOT EXISTS songs (
-    id UUID PRIMARY KEY,
-    name VARCHAR,
-    path VARCHAR,
-    artist UUID,
-    album UUID,
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    path TEXT,
+    artist TEXT,
+    album TEXT,
     discnumber INTEGER,
     tracknumber INTEGER,
     FOREIGN KEY (artist) REFERENCES artists(id),
@@ -32,9 +32,16 @@ CREATE TABLE IF NOT EXISTS songs (
 
 playlists_table = """
 CREATE TABLE IF NOT EXISTS playlists (
-    id UUID PRIMARY KEY,
-    name VARCHAR,
-    songs UUID[]
+    id TEXT PRIMARY KEY,
+    name TEXT
+);
+"""
+
+playlist_songs_table = """
+CREATE TABLE IF NOT EXISTS playlist_songs (
+    playlist TEXT REFERENCES playlists(id),
+    song TEXT REFERENCES songs(id),
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 """
 
@@ -43,10 +50,10 @@ CREATE TABLE IF NOT EXISTS playlists (
 # 2. Most Played
 # 3. Recently Played
 default_playlists = """
-INSERT INTO playlists (id, name, songs) VALUES
-    ('00000000-0000-0000-0000-000000000001', 'Favorite Songs', ARRAY[]::UUID[]),
-    ('00000000-0000-0000-0000-000000000002', 'Most Played', ARRAY[]::UUID[]),
-    ('00000000-0000-0000-0000-000000000003', 'Recently Played', ARRAY[]::UUID[]);
+INSERT INTO playlists (id, name) VALUES
+    ('00000000-0000-0000-0000-000000000001', 'Favorite Songs'),
+    ('00000000-0000-0000-0000-000000000002', 'Most Played'),
+    ('00000000-0000-0000-0000-000000000003', 'Recently Played');
 """
 
-create_tables = [artists_table, albums_table, songs_table, playlists_table, default_playlists]
+create_tables = [artists_table, albums_table, songs_table, playlists_table, playlist_songs_table, default_playlists]
