@@ -2,6 +2,7 @@ artists_table = """
 CREATE TABLE IF NOT EXISTS artists (
     id TEXT PRIMARY KEY,
     name TEXT,
+    path TEXT,
     cover TEXT
 );
 """
@@ -10,8 +11,9 @@ albums_table = """
 CREATE TABLE IF NOT EXISTS albums (
     id TEXT PRIMARY KEY,
     name TEXT,
-    artist TEXT,
+    path TEXT,
     cover TEXT,
+    artist TEXT,
     FOREIGN KEY (artist) REFERENCES artists(id)
 );
 """

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import time
 import signal
 import asyncio
 import aiosqlite
@@ -18,6 +19,26 @@ app_path = os.path.expanduser("~/.var/app/org.flatpak.mezzo/data")
 
 # Create covers directory
 os.makedirs(os.path.join(app_path, "covers"), exist_ok=True)
+
+# Watch library changes every 5 seconds
+async def watch_library_changes():
+    while True:
+        await asyncio.sleep(5)
+        db = await _get_db()
+
+        # Scan for changes
+        scanner = Scanner(app_path)
+        await scanner.scan_for_changes(db)
+
+        # Remove deleted files
+        await scanner.remove_deleted_files(db)
+
+        # Update library
+        await scanner.insert_added_files(db)
+
+        # Save library state
+        hash, files = scanner.get_library_state()
+        scanner.save_library_state(hash, files)
 
 async def _connect_db():
     return await aiosqlite.connect(os.path.join(app_path, "mezzo.db"))
@@ -43,11 +64,11 @@ async def startup():
         tables = await cursor.fetchall()
 
         if not len(tables):
+            print("Creating tables...")
             for create_table in create_tables:
                 await db.execute(create_table)
             await db.commit()
 
-        # Update library
         cursor = await db.execute("SELECT COUNT(*) FROM songs;")
         count = await cursor.fetchone()
 
@@ -57,11 +78,15 @@ async def startup():
             scanner = Scanner(app_path)
             scanner.scan()
 
-            print("Updating library...")
-            await db.executemany(*scanner.get_artists())
-            await db.executemany(*scanner.get_albums())
-            await db.executemany(*scanner.get_songs())
-            await db.commit()
+            # Update library
+            await scanner.insert_added_files(db)
+
+            # Save library state
+            hash, files = scanner.get_library_state()
+            scanner.save_library_state(hash, files)
+
+    # Add watcher for library changes
+    app.add_background_task(watch_library_changes)
     print("Library ready.")
 
 @app.after_serving
@@ -106,7 +131,7 @@ async def albums():
     db = await _get_db()
 
     # Get albums
-    cursor = await db.execute("SELECT albums.id, albums.name, artists.name FROM albums JOIN artists ON albums.artist = artists.id ORDER BY albums.name;")
+    cursor = await db.execute("SELECT albums.id, albums.name, artists.name FROM albums JOIN artists ON albums.artist = artists.id ORDER BY albums.name COLLATE NOCASE;")
     albums = await cursor.fetchall()
     return await render_template("albums.html", albums=albums)
 
@@ -141,7 +166,7 @@ async def artists():
     db = await _get_db()
 
     # Get artists
-    cursor = await db.execute("SELECT * FROM artists ORDER BY name;")
+    cursor = await db.execute("SELECT * FROM artists ORDER BY name COLLATE NOCASE;")
     artists = await cursor.fetchall()
     return await render_template("artists.html", artists=artists)
 
