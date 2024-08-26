@@ -11,6 +11,7 @@ import hashlib
 from mutagen.easyid3 import EasyID3
 from uuid import uuid4
 from base64 import b64encode
+from lib.data import config
 
 def escape(string):
     if string is None:
@@ -19,10 +20,6 @@ def escape(string):
 
 class Scanner:
     def __init__(self, app_path):
-        # Read config
-        with open("config.json", "r") as f:
-            self.config = json.load(f)
-
         # Set variables
         self.app_path = app_path
         self.library = {
@@ -35,7 +32,7 @@ class Scanner:
 
         self.audio_extensions = [".mp3", ".flac", ".ogg", ".wav"]
         self.image_extensions = [".jpg", ".jpeg", ".png"]
-        self.library_path = os.path.expanduser(self.config["library_path"])
+        self.library_path = os.path.expanduser(config["library_path"])
 
         # Spotify
         self.last_request = 0
@@ -58,7 +55,7 @@ class Scanner:
             return data["hash"], data["files"]
 
     def get_spotify_access_token(self):
-        auth = b64encode(f"{self.config['spotify_client_id']}:{self.config['spotify_client_secret']}".encode()).decode()
+        auth = b64encode(f"{config['spotify_client_id']}:{config['spotify_client_secret']}".encode()).decode()
         with requests.post(
             "https://accounts.spotify.com/api/token",
             data = {
@@ -271,7 +268,6 @@ class Scanner:
         return album_id
 
     async def scan_for_changes(self, db):
-        print(f"Scanning for changes in {self.library_path}...")
         starttime = time.time()
 
         # Load library state
@@ -282,7 +278,7 @@ class Scanner:
 
         if hash == new_hash:
             endtime = time.time()
-            print(f"No changes detected. Took {endtime - starttime :.2f} seconds.")
+            # print(f"No changes detected. Took {endtime - starttime :.2f} seconds.")
             return
 
         # Find deleted files

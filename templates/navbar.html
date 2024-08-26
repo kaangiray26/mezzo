@@ -1,5 +1,5 @@
 <navbar>
-    <div class="navbar-buttons left">
+    <div class="navbar-buttons">
         <a
             type="button"
             onclick="route('/search', focusSearch)"
@@ -10,10 +10,9 @@
             endif
             %}
         >
-            <span icon-only>search</span>
+            <span icon>search</span>
+            <span>Search</span>
         </a>
-    </div>
-    <div class="navbar-buttons">
         <a
             type="button"
             onclick="route('/albums')"
@@ -53,8 +52,5 @@
             <span icon>queue_music</span>
             <span>Playlists</span>
         </a>
-    </div>
-    <div class="navbar-buttons right">
-        {% include 'settings.html' %}
     </div>
 </navbar>

@@ -9,7 +9,11 @@
             />
             <div class="album-details">
                 <h1>{{ album[1] }}</h1>
-                <p>{{ album[2] }}</p>
+                <p>
+                    <a onclick="route('/artist/{{album[3]}}')"
+                        >{{ album[2] }}</a
+                    >
+                </p>
                 <button
                     class="btn-play"
                     onclick="mezzo.playAlbum('{{ album[0] }}')"
@@ -36,7 +40,7 @@
                     >
                         <span icon-only>more_vert</span>
                     </button>
-                    <ul class="dropdown-menu">
+                    <ul class="dropdown-menu" top>
                         <li onclick="mezzo.playSong('{{ song[0] }}')">Play</li>
                         <li onclick="mezzo.addToQueue('{{ song[0] }}')">
                             Add to Queue

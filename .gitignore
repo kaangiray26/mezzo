@@ -9,3 +9,5 @@ flatpak-pip-generator
 wheels
 packages
 build-dir
+firefox
+firefox.tar.bz2

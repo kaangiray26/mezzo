@@ -6,7 +6,7 @@
         <div class="artist-result" onclick="route('/artist/{{result[0]}}')">
             <img
                 loading="lazy"
-                src="/cover/{{ result[2] }}"
+                src="/cover/{{ result[3] }}"
                 onerror="this.src='/static/deadend.svg'"
             />
             <span>{{ result[1] }}</span>
@@ -51,7 +51,7 @@
                 >
                     <span icon-only>more_vert</span>
                 </button>
-                <ul class="dropdown-menu">
+                <ul class="dropdown-menu" top>
                     <li onclick="mezzo.playSong('{{ song[0] }}')">Play</li>
                     <li onclick="mezzo.addToQueue('{{ song[0] }}')">
                         Add to queue

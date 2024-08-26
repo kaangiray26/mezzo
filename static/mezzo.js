@@ -21,6 +21,9 @@ class Mezzo {
     constructor() {
         this.queue = [];
         this.playing_song = null;
+        this.now_playing = {
+            album: null,
+        };
         this.player = new Howl({
             src: [null],
             format: ["flac", "mp3", "ogg", "wav", "aac", "m4a", "opus", "webm"],
@@ -56,6 +59,7 @@ class Mezzo {
 
         // Set boolean states
         this.is_dialog_open = false;
+        this.radio = false;
 
         // Mouse click event
         document.addEventListener("click", (ev) => {
@@ -71,6 +75,25 @@ class Mezzo {
         console.log("Mezzo player initialized.");
     }
 
+    async openAlbum() {
+        let album_id = this.now_playing["album"];
+        if (!album_id) {
+            route("/home");
+            return;
+        }
+        route(`/album/${album_id}`);
+    }
+
+    async toggleRadio(el) {
+        this.radio = !this.radio;
+        el.setAttribute("toggled", this.radio);
+
+        if (this.radio && !this.queue.length) {
+            let song = await fetch("/radio").then((res) => res.json());
+            this.playSong(song.id);
+        }
+    }
+
     async dialogCheck() {
         if (this.is_dialog_open) this.closeAllDialogs();
     }
@@ -78,6 +101,7 @@ class Mezzo {
     async track_finished() {
         // Get song uuid
         let uuid = this.playing_song;
+        this.player.unload();
 
         // Play next song
         this.playQueue();
@@ -152,6 +176,9 @@ class Mezzo {
             res.json(),
         );
 
+        // Set now_playing
+        this.now_playing["album"] = res.cover;
+
         // Update UI
         update_ref("player_cover", `/cover/${res.cover}`);
         update_ref("player_title", res.name);
@@ -211,23 +238,40 @@ class Mezzo {
     }
 
     async playQueue() {
-        if (!this.queue.length) {
-            this.player.pause();
-            update_ref("player_play", "play_arrow");
+        if (this.queue.length) {
+            let song = this.queue.shift();
+            this.playSong(song);
             return;
         }
 
-        let song = this.queue.shift();
-        this.playSong(song);
+        // Fallbacks
+        // 1. Check radio
+        if (this.radio) {
+            let song = await fetch("/radio").then((res) => res.json());
+            this.playSong(song.id);
+            return;
+        }
+
+        // Finally
+        update_ref("player_play", "play_arrow");
+        return;
     }
 
     async next() {
-        if (!this.queue.length) return;
+        // Check if any song is loaded
+        if (this.queue.length) {
+            let song = this.queue.shift();
+            this.playSong(song);
+            return;
+        }
 
-        // Play next song
-        let song = this.queue.shift();
-        console.log(song);
-        this.playSong(song);
+        // Fallbacks
+        // 1. Check radio
+        if (this.radio) {
+            let song = await fetch("/radio").then((res) => res.json());
+            this.playSong(song.id);
+            return;
+        }
     }
 
     async prev() {
@@ -298,6 +342,7 @@ class Mezzo {
     }
 
     async exit() {
+        console.log("exit");
         await fetch("/exit", {
             method: "POST",
         }).catch((err) => (window.location.href = "about:blank"));

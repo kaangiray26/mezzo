@@ -1,5 +1,5 @@
 # mezzo
-Music player designed to function like major streaming platforms
+A simple, open-source music player
 
 ## development
 Build the flatpak with the following command:

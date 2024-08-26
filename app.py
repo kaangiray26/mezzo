@@ -3,9 +3,9 @@
 
 import os
 import time
-import signal
 import asyncio
 import aiosqlite
+import mimetypes
 from quart import Quart, request, render_template, redirect, url_for, send_file, jsonify, send_from_directory, g
 from functools import wraps
 from lib.mezzo import Scanner
@@ -56,6 +56,17 @@ def route_required(func):
         return await func(*args, **kwargs)
     return route
 
+@app.after_serving
+async def shutdown():
+    print("Shutting down...")
+    # Close database connection
+    if hasattr(g, "db"):
+        await g.db.close()
+
+    # Stop background tasks
+    for task in app.background_tasks:
+        task.cancel()
+
 @app.before_serving
 async def startup():
     async with aiosqlite.connect(os.path.join(app_path, "mezzo.db")) as db:
@@ -89,13 +100,14 @@ async def startup():
     app.add_background_task(watch_library_changes)
     print("Library ready.")
 
-@app.after_serving
-async def shutdown():
-    pass
-
 @app.route("/")
 async def index():
     return await render_template("index.html")
+
+@app.route("/home")
+@route_required
+async def home():
+    return await render_template("home.html")
 
 @app.route("/search")
 @route_required
@@ -141,7 +153,7 @@ async def album(uuid):
     db = await _get_db()
 
     # Get album
-    cursor = await db.execute(f"SELECT albums.id, albums.name, artists.name FROM albums JOIN artists ON albums.artist = artists.id WHERE albums.id = '{uuid}';")
+    cursor = await db.execute(f"SELECT albums.id, albums.name, artists.name, artists.id FROM albums JOIN artists ON albums.artist = artists.id WHERE albums.id = '{uuid}';")
     album = await cursor.fetchone()
 
     # Get songs
@@ -260,7 +272,25 @@ async def stream(uuid):
     # Get song path
     cursor = await db.execute(f"SELECT path FROM songs WHERE id = '{uuid}';")
     song = await cursor.fetchone()
-    return await send_file(song[0])
+
+    # Get mimetype from filename
+    mimetype = mimetypes.guess_type(song[0])
+
+    # Set headers
+    headers = {
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "max-age=315360000, no-transform",
+        "Content-Type": mimetype[0],
+    }
+
+    response = await send_file(song[0], mimetype=mimetype[0])
+    response.headers["Accept-Ranges"] = "bytes"
+    response.headers["Cache-Control"] = "max-age=315360000, no-transform"
+    response.headers["Content-Type"] = mimetype[0]
+    return response
+
+    # Return file
+    # return await send_file(song[0], mimetype=mimetype[0]), 200, headers
 
 @app.route("/stream/<uuid>/basic")
 async def stream_basic(uuid):
@@ -297,11 +327,13 @@ async def queue():
     songs = sorted(songs, key=lambda x: queue.index(x[0]))
     return await render_template("queue.html", songs=songs)
 
-@app.route("/exit", methods=["POST"])
-async def exit():
-    print("Exiting...")
-    # Create signal.SIGTERM
-    os.kill(os.getpid(), signal.SIGTERM)
+@app.route("/radio")
+async def radio():
+    # Get random song
+    db = await _get_db()
+    cursor = await db.execute("SELECT id FROM songs ORDER BY RANDOM() LIMIT 1;")
+    song = await cursor.fetchone()
+
     return {
-        "data": "Goodbye!"
+        "id": song[0]
     }

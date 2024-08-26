@@ -1,12 +1,14 @@
 id: org.flatpak.mezzo
-runtime: org.freedesktop.Sdk
+runtime: org.freedesktop.Platform
 runtime-version: "23.08"
 sdk: org.freedesktop.Sdk
 command: org.flatpak.mezzo.sh
 finish-args:
+    - --share=ipc
     - --share=network
     - --socket=x11
     - --socket=wayland
+    - --socket=pulseaudio
     - --device=dri
     - --filesystem=home
     - --filesystem=~/.var/app/org.flatpak.mezzo/data
@@ -16,11 +18,24 @@ modules:
       build-commands:
           - mkdir -p /app/wheels
           - cp wheels/*.whl /app/wheels/
-          - pip install --no-cache-dir /app/wheels/*.whl -t /app/
           - cp -r static /app/static
           - cp -r templates /app/templates
           - cp -r lib /app/lib
-          - cp app.py wsgi.py config.json /app/
+          - cp app.py /app/
+          - pip3 install --prefix=/app wheels/*.whl
+      sources:
+          - type: dir
+            path: .
+
+    - name: firefox
+      buildsystem: simple
+      build-commands:
+          # Copy the tarball to the build directory
+          - cp -r firefox /app/
+          # Copy the profile
+          - cp profile.tar.gz /app/
+          - tar -xf /app/profile.tar.gz -C /app/
+          - rm /app/profile.tar.gz
       sources:
           - type: dir
             path: .
@@ -30,26 +45,18 @@ modules:
       build-commands:
           - install -Dm755 ${FLATPAK_ID}.sh -t /app/bin
           - install -Dm755 ${FLATPAK_ID}.desktop -t /app/share/applications
-          - install -Dm644 icon_16.png -t /app/share/icons/hicolor/16x16/apps/${FLATPAK_ID}.png
-          - install -Dm644 icon_32.png -t /app/share/icons/hicolor/32x32/apps/${FLATPAK_ID}.png
-          - install -Dm644 icon_64.png -t /app/share/icons/hicolor/64x64/apps/${FLATPAK_ID}.png
-          - install -Dm644 icon_128.png -t /app/share/icons/hicolor/128x128/apps/${FLATPAK_ID}.png
-          - install -Dm644 icon_256.png -t /app/share/icons/hicolor/256x256/apps/${FLATPAK_ID}.png
-          - install -Dm644 icon_512.png -t /app/share/icons/hicolor/512x512/apps/${FLATPAK_ID}.png
+          - install -Dm644 favicon.svg /app/share/icons/hicolor/scalable/apps/org.flatpak.mezzo.svg
+          - install -Dm644 16.png /app/share/icons/hicolor/16x16/apps/org.flatpak.mezzo.png
+          - install -Dm644 32.png /app/share/icons/hicolor/32x32/apps/org.flatpak.mezzo.png
+          - install -Dm644 48.png /app/share/icons/hicolor/48x48/apps/org.flatpak.mezzo.png
+          - install -Dm644 64.png /app/share/icons/hicolor/64x64/apps/org.flatpak.mezzo.png
+          - install -Dm644 128.png /app/share/icons/hicolor/128x128/apps/org.flatpak.mezzo.png
+          - install -Dm644 256.png /app/share/icons/hicolor/256x256/apps/org.flatpak.mezzo.png
+          - install -Dm644 512.png /app/share/icons/hicolor/512x512/apps/org.flatpak.mezzo.png
       sources:
           - type: file
             path: org.flatpak.mezzo.sh
           - type: file
             path: org.flatpak.mezzo.desktop
-          - type: file
-            path: icons/icon_16.png
-          - type: file
-            path: icons/icon_32.png
-          - type: file
-            path: icons/icon_64.png
-          - type: file
-            path: icons/icon_128.png
-          - type: file
-            path: icons/icon_256.png
-          - type: file
-            path: icons/icon_512.png
+          - type: dir
+            path: icons
