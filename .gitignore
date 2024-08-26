@@ -11,3 +11,4 @@ packages
 build-dir
 firefox
 firefox.tar.bz2
+_data.py
