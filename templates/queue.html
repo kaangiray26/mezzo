@@ -1,0 +1,19 @@
+<div class="queue-modal">
+    <div class="queue-header">
+        <h3>Queue</h3>
+        <button class="btn-light" onclick="mezzo.closeDialog()">
+            <h3 icon>close</h3>
+        </button>
+    </div>
+    {% if songs %}
+    <ul class="queue">
+        {% for song in songs %}
+        <li class="track" onclick="mezzo.playSong('{{ song[0] }}')">
+            <span class="track-number">{{ loop.index }}</span>
+            <span class="track-title">{{ song[1] }}</span>
+            <span class="track-duration">2:23</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>

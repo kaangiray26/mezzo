@@ -1,0 +1,9 @@
+{% extends 'base.html' %}{% block content %}
+<router-view> </router-view>
+<script>
+    // Redirect to path
+    const params = new URLSearchParams(window.location.search);
+    console.log("Redirecting to:", params.get("path"));
+    route(params.get("path"));
+</script>
+{% endblock %}

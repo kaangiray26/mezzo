@@ -1,0 +1,56 @@
+<navbar>
+    <div class="navbar-buttons">
+        <a
+            type="button"
+            onclick="route('/search', focusSearch)"
+            {%
+            if
+            route=="/search"
+            %}active{%
+            endif
+            %}
+        >
+            <span icon>search</span>
+            <span>Search</span>
+        </a>
+        <a
+            type="button"
+            onclick="route('/albums')"
+            {%
+            if
+            route=="/albums"
+            %}active{%
+            endif
+            %}
+        >
+            <span icon>album</span>
+            <span>Albums</span>
+        </a>
+        <a
+            type="button"
+            onclick="route('/artists')"
+            {%
+            if
+            route=="/artists"
+            %}active{%
+            endif
+            %}
+        >
+            <span icon>artist</span>
+            <span>Artists</span>
+        </a>
+        <a
+            type="button"
+            onclick="route('/playlists')"
+            {%
+            if
+            route=="/playlists"
+            %}active{%
+            endif
+            %}
+        >
+            <span icon>queue_music</span>
+            <span>Playlists</span>
+        </a>
+    </div>
+</navbar>

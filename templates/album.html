@@ -1,0 +1,65 @@
+{% with route='/album' %} {% include 'navbar.html' %} {% endwith %}
+<main>
+    <div class="album-container">
+        <div class="album-front">
+            <img
+                class="album-cover"
+                src="/cover/{{ album[0] }}"
+                onerror="this.src='/static/deadend.svg'"
+            />
+            <div class="album-details">
+                <h1>{{ album[1] }}</h1>
+                <p>
+                    <a onclick="route('/artist/{{album[3]}}')"
+                        >{{ album[2] }}</a
+                    >
+                </p>
+                <button
+                    class="btn-play"
+                    onclick="mezzo.playAlbum('{{ album[0] }}')"
+                >
+                    <span icon-only>play_arrow</span>
+                </button>
+            </div>
+        </div>
+        <ul class="tracklist">
+            {% for song in songs %}
+            <li class="track">
+                <div
+                    class="track-details"
+                    onclick="mezzo.playSong('{{ song[0] }}')"
+                >
+                    <span class="track-number">{{ loop.index }}</span>
+                    <span class="track-title">{{ song[1] }}</span>
+                    <span class="track-duration">2:23</span>
+                </div>
+                <div class="dropdown">
+                    <button
+                        class="btn-option"
+                        onclick="mezzo.openContext(event, this)"
+                    >
+                        <span icon-only>more_vert</span>
+                    </button>
+                    <ul class="dropdown-menu" top>
+                        <li onclick="mezzo.playSong('{{ song[0] }}')">Play</li>
+                        <li onclick="mezzo.addToQueue('{{ song[0] }}')">
+                            Add to Queue
+                        </li>
+                        <li onclick="mezzo.goToAlbum('{{ song[4]}}')">
+                            Go to Album
+                        </li>
+                        <li onclick="mezzo.goToArtist('{{ song[3] }}')">
+                            Go to Artist
+                        </li>
+                        <li
+                            onclick="mezzo.openPlaylistSelection('{{ song[0] }}')"
+                        >
+                            Add to Playlist...
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</main>

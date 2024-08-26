@@ -1,0 +1,16 @@
+{% extends 'base.html' %}{% block content %}
+<router-view>
+    {% with route='/' %} {% include 'navbar.html' %} {% endwith %}
+    <main>
+        <div class="welcome">
+            <img src="static/welcome.svg" alt="Mezzo Player" />
+            <h1>Welcome to Mezzo Player!</h1>
+            <p>
+                Mezzo is a simple music player built to play whatever you throw
+                at it. Browse through your music library, create playlists, and
+                enjoy your music.
+            </p>
+        </div>
+    </main>
+</router-view>
+{% include 'player.html' %} {% include 'dialog.html' %} {% endblock %}

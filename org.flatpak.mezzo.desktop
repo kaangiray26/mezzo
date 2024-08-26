@@ -1,0 +1,9 @@
+[Desktop Entry]
+Categories=Audio;Music;Player;AudioVideo;
+Comment=A simple, open-source music player
+Exec=org.flatpak.mezzo.sh
+Icon=org.flatpak.mezzo
+Name=Mezzo
+Terminal=false
+Type=Application
+Version=1.0

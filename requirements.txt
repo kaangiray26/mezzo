@@ -1,0 +1,5 @@
+quart
+mutagen
+requests
+aiosqlite
+Hypercorn

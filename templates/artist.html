@@ -1,0 +1,42 @@
+{% with route='/artist' %} {% include 'navbar.html' %} {% endwith %}
+<main>
+    <div class="artist-container">
+        <div class="artist-front">
+            <img
+                class="artist-cover"
+                src="/cover/{{ artist[3] }}"
+                alt="Artist cover"
+            />
+            <div class="artist-overlay">
+                <div class="artist-details">
+                    <h1>{{ artist[1] }}</h1>
+                    <span
+                        >{{ albums|length }} {{ 'album' if albums|length == 1
+                        else 'albums' }}</span
+                    >
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-play" onclick="mezzo.playArtist('{{ artist[0] }}')">
+            <span icon-only>play_arrow</span>
+        </button>
+        {% if albums %}
+        <h3>Albums</h3>
+        <div class="item-container">
+            <div class="items">
+                {% for album in albums %}
+                <div class="item" onclick="route('/album/{{album[0]}}')">
+                    <img
+                        src="/cover/{{ album[0] }}"
+                        onerror="this.src='/static/deadend.svg'"
+                    />
+                    <span>{{ album[1] }}</span>
+                    <small>{{ album[5] }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</main>

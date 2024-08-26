@@ -1,0 +1,71 @@
+<div class="results">
+    {% if results.artists %}
+    <h3>Artists</h3>
+    <div class="artist-results">
+        {% for result in results.artists %}
+        <div class="artist-result" onclick="route('/artist/{{result[0]}}')">
+            <img
+                loading="lazy"
+                src="/cover/{{ result[3] }}"
+                onerror="this.src='/static/deadend.svg'"
+            />
+            <span>{{ result[1] }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %} {% if results.albums %}
+    <h3>Albums</h3>
+    <div class="item-container">
+        <div class="items">
+            {% for album in results.albums %}
+            <div class="item" onclick="route('/album/{{album[0]}}')">
+                <img
+                    loading="lazy"
+                    src="/cover/{{ album[0] }}"
+                    onerror="this.src='/static/deadend.svg'"
+                />
+                <span>{{ album[1] }}</span>
+                <small>{{ album[5] }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %} {% if results.songs %}
+    <h3>Songs</h3>
+    <ul class="tracklist">
+        {% for song in results.songs %}
+        <li class="track">
+            <div
+                class="track-details"
+                onclick="mezzo.playSong('{{ song[0] }}')"
+            >
+                <span class="track-title">{{ song[1] }}</span>
+                <span class="track-title">{{ song[4] }}</span>
+                <span class="track-title">{{ song[5] }}</span>
+                <span class="track-duration">2:23</span>
+            </div>
+            <div class="dropdown">
+                <button
+                    class="btn-option"
+                    onclick="mezzo.openContext(event, this)"
+                >
+                    <span icon-only>more_vert</span>
+                </button>
+                <ul class="dropdown-menu" top>
+                    <li onclick="mezzo.playSong('{{ song[0] }}')">Play</li>
+                    <li onclick="mezzo.addToQueue('{{ song[0] }}')">
+                        Add to queue
+                    </li>
+                    <li onclick="mezzo.goToAlbum('{{ song[3]}}')">
+                        Go to album
+                    </li>
+                    <li onclick="mezzo.goToArtist('{{ song[2] }}')">
+                        Go to artist
+                    </li>
+                </ul>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>

@@ -1,0 +1,18 @@
+{% with route='/albums' %} {% include 'navbar.html' %} {% endwith %}
+<main>
+    <div class="item-container">
+        <div class="items">
+            {% for album in albums %}
+            <div class="item" onclick="route('/album/{{album[0]}}')">
+                <img
+                    loading="lazy"
+                    src="/cover/{{ album[0] }}"
+                    onerror="this.src='/static/deadend.svg'"
+                />
+                <span>{{ album[1] }}</span>
+                <small>{{ album[2] }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</main>

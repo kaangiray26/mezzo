@@ -1,0 +1,48 @@
+<div class="player">
+    <div class="player-info">
+        <img
+            class="player-cover"
+            ref="player_cover"
+            ref_to="src"
+            src="/static/cover.svg"
+            onerror="this.src='/static/deadend.svg'"
+            onclick="mezzo.openAlbum()"
+        />
+        <div class="player-details">
+            <span ref="player_title"></span>
+            <span ref="player_artist"></span>
+        </div>
+    </div>
+    <div class="player-controls">
+        <div class="player-buttons">
+            <button class="btn-light" onclick="mezzo.prev()">
+                <span icon-only>skip_previous</span>
+            </button>
+            <button class="btn-play" onclick="mezzo.play()">
+                <span icon-only ref="player_play">play_arrow</span>
+            </button>
+            <button class="btn-light" onclick="mezzo.next()">
+                <span icon-only>skip_next</span>
+            </button>
+        </div>
+        <div class="player-progress">
+            <small class="player-time" ref="player_current_time">0:00</small>
+            <div class="progress-bar" onclick="seek(event)">
+                <div ref="progress" ref_to="style" class="progress"></div>
+            </div>
+            <small class="player-time" ref="player_duration">0:00</small>
+        </div>
+    </div>
+    <div class="player-options">
+        <button
+            class="btn-option"
+            onclick="mezzo.toggleRadio(this)"
+            toggled="false"
+        >
+            <span icon-only>radio</span>
+        </button>
+        <button class="btn-option" onclick="mezzo.openQueue()">
+            <span icon-only>queue_music</span>
+        </button>
+    </div>
+</div>

@@ -1,0 +1,14 @@
+__pycache__
+env
+covers
+*.json
+*.db
+*.wal
+flatpak-pip-generator
+.flatpak-builder
+wheels
+packages
+build-dir
+firefox
+firefox.tar.bz2
+_data.py
